@@ -1,0 +1,16 @@
+{
+  "user": {
+    "curp": "string",
+    "name": "string",
+    "apPat": "string",
+    "apMat": "string",
+    "email": "string",
+    "password": "string",
+    "phone": "string",
+    "userType": "number",
+    "opinions": "string[]",
+    "posts": "string[]"
+  },
+  "opinions": {},
+  "posts": {}
+}
