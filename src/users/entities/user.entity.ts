@@ -3,9 +3,11 @@ import {
   Column,
   Entity,
   OneToMany,
+  OneToOne,
   PrimaryColumn,
-  PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
+import { UserImage } from './user-image.entity';
 
 /* 
   En principio tendremos 3 tipos de usuario
@@ -49,13 +51,19 @@ export class User {
   isActive: boolean;
 
   /*
-    A partir de aquí van las columnas que tendrán relaciones
+  A partir de aquí van las columnas que tendrán relaciones
   */
+  @OneToOne(() => UserImage, (ui) => ui.user, { cascade: true, eager: true })
+  urlImgProfile: Relation<UserImage>;
+
   @Column('text', { array: true, default: [] })
   opinions: string[];
 
-  @OneToMany(() => Post, (userPost) => userPost.user, { cascade: true })
-  posts: Post[];
+  @OneToMany(() => Post, (userPost) => userPost.user, {
+    cascade: true,
+    eager: true,
+  })
+  posts?: Post[];
 
   /* @BeforeInsert()
   desmadre() {} */

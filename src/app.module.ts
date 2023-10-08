@@ -5,6 +5,7 @@ import { UsersModule } from './users/users.module';
 import { CommonModule } from './common/common.module';
 import { PostsModule } from './posts/posts.module';
 import { ImagesModule } from './images/images.module';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ImagesModule } from './images/images.module';
     CommonModule,
     PostsModule,
     ImagesModule,
+    SeedModule,
   ],
 })
 export class AppModule {}
