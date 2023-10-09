@@ -24,15 +24,12 @@ export class PostsController {
   }
 
   @Get()
-  findAll(@Query('id', ParseUUIDPipe) id: string) {
+  findAll(@Query('id') id: string) {
     return this.postsService.findAllByUser(id);
   }
 
   @Get(':id')
-  findOne(
-    @Query() paginationDto: PaginationDto,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  findOne(@Query() paginationDto: PaginationDto, @Param('id') id: string) {
     return this.postsService.findSome(paginationDto, id);
   }
 

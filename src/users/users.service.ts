@@ -85,8 +85,6 @@ export class UsersService {
   async update(id: string, updateUserDto: UpdateUserDto) {
     const { urlImgProfile, ...toUpdate } = updateUserDto;
 
-    console.log(urlImgProfile);
-
     const userDB = await this.findOne(id);
 
     const user = await this.userRepository.preload({
