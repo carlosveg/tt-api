@@ -1,0 +1,61 @@
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { AuthService } from './auth.service';
+import { GetUser, RawHeaders } from './decorators';
+import { Auth } from './decorators/auth.decorator';
+import { RoleProtected } from './decorators/role-protected.decorator';
+import { CreateUserDto, LoginUserDto } from './dto';
+import { User } from './entities/user.entity';
+import { UserRoleGuard } from './guargs/user-role/user-role.guard';
+import { ValidRoles } from './interfaces/valid-roles';
+
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('register')
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.authService.create(createUserDto);
+  }
+
+  @Post('login')
+  login(@Body() loginUserDto: LoginUserDto) {
+    return this.authService.login(loginUserDto);
+  }
+
+  @Get('private')
+  @UseGuards(AuthGuard())
+  testPrivateRoute(
+    @Req() request: Express.Request,
+    @GetUser() user: User,
+    @GetUser('email') email: string,
+    @RawHeaders() headers: string[],
+  ) {
+    return { user, email, headers };
+  }
+
+  @Get('private2')
+  //@SetMetadata('roles', ['admin', 'su'])
+  @RoleProtected(ValidRoles.su, ValidRoles.admin)
+  @UseGuards(AuthGuard(), UserRoleGuard)
+  testPrivateRoute2(
+    @Req() request: Express.Request,
+    @GetUser() user: User,
+    @GetUser('email') email: string,
+    @RawHeaders() headers: string,
+  ) {
+    return { user, email, headers };
+  }
+
+  @Get('private3')
+  //@SetMetadata('roles', ['admin', 'su'])
+  @Auth()
+  testPrivateRoute3(
+    @Req() request: Express.Request,
+    @GetUser() user: User,
+    @GetUser('email') email: string,
+    @RawHeaders() headers: string,
+  ) {
+    return { user, email, headers };
+  }
+}
