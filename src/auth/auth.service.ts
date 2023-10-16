@@ -4,22 +4,25 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { S3Service } from 'src/s3/s3.service';
 import { Repository } from 'typeorm';
-import { CreateUserDto, LoginUserDto } from './dto';
-import { User } from './entities/user.entity';
+import { CreateUserDto, LoginUserDto } from '../users/dto';
+import { User } from '../users/entities/';
 import { JwtPayload } from './interfaces/jtw-payload.interface';
-import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    private s3Service: S3Service,
     private readonly jwtService: JwtService,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto, photo: Express.Multer.File) {
     try {
       const { password, ...rest } = createUserDto;
       const user = this.userRepository.create({
@@ -27,11 +30,19 @@ export class AuthService {
         password: bcrypt.hashSync(password, 10),
       });
 
+      /* si hay imagen entonces la mando al s3 */
+      if (photo) {
+        const name = `${photo.originalname.split('.')[0]}${Date.now()}.${
+          photo.originalname.split('.')[1]
+        }`;
+        const url = await this.s3Service.uploadFile(photo, name);
+        user.urlImgProfile = url;
+      }
+
       await this.userRepository.save(user);
       delete user.password;
 
       return { ...user, token: this.getJwtToken({ id: user.curp }) };
-      // TODO: Retornar el JWT de acceso
     } catch (error) {
       console.log(error);
       this.handleDBErrors(error);
@@ -52,7 +63,6 @@ export class AuthService {
       throw new UnauthorizedException('Not valid credentials');
 
     return { ...user, token: this.getJwtToken({ id: user.curp }) };
-    // TODO: Retornar el JWT de acceso
   }
 
   private getJwtToken(payload: JwtPayload) {

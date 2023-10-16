@@ -34,12 +34,18 @@ export class UsersService {
         ...userDetails,
       });
 
-      if (urlImgProfile) {
+      /* 
+        Esta parte se debe surtituir por la subida de archivos a s3
+        
+        Por otro lado la entidad se va a modificar para que la columna
+        urlImgProfile ya no sea una relación sino una columna string
+       */
+      /* if (urlImgProfile) {
         const userImage = this.userImageRepository.create({
           url: urlImgProfile,
         });
         user.urlImgProfile = userImage;
-      }
+      } */
 
       await this.userRepository.save(user);
 
@@ -54,13 +60,14 @@ export class UsersService {
     const users = await this.userRepository.find({
       take: limit,
       skip: offset,
-      relations: { urlImgProfile: true },
+      /* relations: { urlImgProfile: true }, */
     });
 
-    return users.map((user) => ({
+    /* return users.map((user) => ({
       ...user,
       urlImgProfile: user.urlImgProfile.url,
-    }));
+    })); */
+    return users;
   }
 
   async findOne(id: string) {
@@ -100,13 +107,13 @@ export class UsersService {
     await queryRunner.startTransaction();
 
     try {
-      if (urlImgProfile) {
+      /* if (urlImgProfile) {
         await queryRunner.manager.delete(UserImage, { user: { curp: id } });
 
         user.urlImgProfile = this.userImageRepository.create({
           url: urlImgProfile,
         });
-      }
+      } */
 
       // intenta guardar
       await queryRunner.manager.save(user);

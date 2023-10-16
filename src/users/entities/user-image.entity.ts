@@ -17,6 +17,6 @@ export class UserImage {
   url: string;
 
   @OneToOne(() => User, (user) => user.curp, { onDelete: 'CASCADE' })
-  @JoinColumn()
+  @JoinColumn({ name: 'curp' })
   user: Relation<User>;
 }

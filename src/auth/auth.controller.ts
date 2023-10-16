@@ -1,21 +1,36 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  UploadedFile,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { GetUser, RawHeaders } from './decorators';
 import { Auth } from './decorators/auth.decorator';
 import { RoleProtected } from './decorators/role-protected.decorator';
-import { CreateUserDto, LoginUserDto } from './dto';
+import { CreateUserDto, LoginUserDto } from '../users/dto';
 import { User } from './entities/user.entity';
 import { UserRoleGuard } from './guargs/user-role/user-role.guard';
 import { ValidRoles } from './interfaces/valid-roles';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.authService.create(createUserDto);
+  @UseInterceptors(FileInterceptor('photo'))
+  create(
+    @UploadedFile() photo: Express.Multer.File,
+    @Body() createUserDto: CreateUserDto,
+  ) {
+    return this.authService.create(createUserDto, photo);
   }
 
   @Post('login')

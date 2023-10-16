@@ -10,6 +10,7 @@ import { PostsModule } from './posts/posts.module';
 import { SeedModule } from './seed/seed.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { S3Module } from './s3/s3.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AuthModule } from './auth/auth.module';
     SeedModule,
     FilesModule,
     AuthModule,
+    S3Module,
   ],
 })
 export class AppModule {}

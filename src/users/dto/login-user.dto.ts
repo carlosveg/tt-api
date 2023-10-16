@@ -1,22 +1,14 @@
 import {
-  IsOptional,
-  IsPhoneNumber,
+  IsEmail,
   IsString,
   Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
 
-export class CreateUserDto {
+export class LoginUserDto {
   @IsString()
-  @MinLength(18)
-  @MaxLength(18)
-  curp: string;
-
-  @IsString()
-  fullName: string;
-
-  @IsString()
+  @IsEmail()
   email: string;
 
   @IsString()
@@ -27,12 +19,4 @@ export class CreateUserDto {
       'The password must have a Uppercase, lowercase letter and a number',
   })
   password: string;
-
-  @IsString()
-  @IsPhoneNumber('MX')
-  phone: string;
-
-  @IsString()
-  @IsOptional()
-  urlImgProfile?: string;
 }

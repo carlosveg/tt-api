@@ -19,21 +19,11 @@ import { UserImage } from './user-image.entity';
 
 @Entity({ name: 'users' })
 export class User {
-  // @PrimaryGeneratedColumn('uuid')
-  // id: string;
-
-  // @Column('text', { nullable: false, unique: true })
   @PrimaryColumn('text', { nullable: false, unique: true })
   curp: string;
 
   @Column('text', { nullable: false })
-  name: string;
-
-  @Column('text', { nullable: false })
-  apPat: string;
-
-  @Column('text', { nullable: false })
-  apMat: string;
+  fullName: string;
 
   @Column('text', { nullable: false, unique: true })
   email: string;
@@ -50,11 +40,20 @@ export class User {
   @Column('boolean', { default: true })
   isActive: boolean;
 
+  @Column('numeric', { default: 0 })
+  score: number;
+
+  @Column('text', {
+    nullable: false,
+    default: 'https://files-tt.s3.amazonaws.com/nobody.jpg',
+  })
+  urlImgProfile: string;
+
   /*
   A partir de aquí van las columnas que tendrán relaciones
   */
-  @OneToOne(() => UserImage, (ui) => ui.user, { cascade: true, eager: true })
-  urlImgProfile: Relation<UserImage>;
+  /* @OneToOne(() => UserImage, (ui) => ui.user, { cascade: true, eager: true })
+  urlImgProfile: Relation<UserImage>; */
 
   @Column('text', { array: true, default: [] })
   opinions: string[];
@@ -64,17 +63,4 @@ export class User {
     eager: true,
   })
   posts?: Post[];
-
-  /* @BeforeInsert()
-  desmadre() {} */
-
-  /*
-    Aquí estarán las validaciones para que ciertos datos cumplan con el
-    cierto formato, tales como:
-      - curp
-      - email
-      - phone
-  */
-  /* @BeforeUpdate()
-  desmadre() {} */
 }
