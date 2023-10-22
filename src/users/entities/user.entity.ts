@@ -1,13 +1,19 @@
 import { Post } from 'src/posts/entities/post.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   OneToMany,
   OneToOne,
   PrimaryColumn,
   Relation,
+  UpdateDateColumn,
 } from 'typeorm';
-import { UserImage } from './user-image.entity';
+import { UserMinorista } from './user-minorista.entity';
+import { UserScore } from './user-score.entity';
+import { Opinion } from 'src/posts/entities/opinion.entity';
 
 /* 
   En principio tendremos 3 tipos de usuario
@@ -40,27 +46,41 @@ export class User {
   @Column('boolean', { default: true })
   isActive: boolean;
 
-  @Column('numeric', { default: 0 })
-  score: number;
-
   @Column('text', {
     nullable: false,
     default: 'https://files-tt.s3.amazonaws.com/nobody.jpg',
   })
   urlImgProfile: string;
 
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
   /*
   A partir de aquí van las columnas que tendrán relaciones
   */
-  /* @OneToOne(() => UserImage, (ui) => ui.user, { cascade: true, eager: true })
-  urlImgProfile: Relation<UserImage>; */
+  @OneToOne(() => UserMinorista, (um) => um.user, {
+    cascade: true,
+    nullable: true,
+  })
+  minorista: UserMinorista;
 
-  @Column('text', { array: true, default: [] })
+  @OneToMany(() => UserScore, (score) => score.userOrigen, { cascade: true })
+  score: UserScore[];
+
+  /* implementar la relacion con opinions */
+  @OneToMany(() => Opinion, (op) => op.user, { cascade: true })
   opinions: string[];
 
-  @OneToMany(() => Post, (userPost) => userPost.user, {
-    cascade: true,
-    eager: true,
-  })
-  posts?: Post[];
+  /* 
+    Relaciones para manejar el proceso de los favoritos
+   */
+  @ManyToMany(() => User, (user) => user.favoritedBy)
+  @JoinTable()
+  favorites: User[];
+
+  @ManyToMany(() => User, (user) => user.favorites)
+  favoritedBy: User[];
 }

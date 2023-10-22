@@ -1,4 +1,4 @@
-import { User } from 'src/users/entities';
+import { UserMinorista } from 'src/users/entities';
 import {
   Column,
   CreateDateColumn,
@@ -8,7 +8,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { PostImage } from './post-image.entity';
+import { Image } from './image.entity';
+import { Opinion } from './opinion.entity';
 
 @Entity({ name: 'posts' })
 export class Post {
@@ -27,9 +28,12 @@ export class Post {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => PostImage, (postImage) => postImage.post, { cascade: true })
-  images?: PostImage[];
+  @OneToMany(() => Image, (image) => image.post, { cascade: true })
+  images: Image[];
 
-  @ManyToOne(() => User, (user) => user.posts)
-  user: User;
+  @ManyToOne(() => UserMinorista, (user) => user.posts)
+  user: UserMinorista;
+
+  @OneToMany(() => Opinion, (op) => op.post, { cascade: true })
+  opinions: Opinion;
 }

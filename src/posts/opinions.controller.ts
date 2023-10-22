@@ -12,33 +12,32 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { CreatePostDto } from './dto/create-post.dto';
-import { PostsService } from './posts.service';
-import { UpdatePostDto } from './dto/update-post.dto';
 import { CreateOpinionDto } from './dto/create-opinion.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
+import { OpinionsService } from './opinions.service';
 
-@Controller('posts')
-export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+@Controller('opinions')
+export class OpinionsController {
+  constructor(private readonly opinionsService: OpinionsService) {}
 
   @Post('/create/:id')
   @UseInterceptors(FilesInterceptor('photos'))
   create(
-    @Param('id') id: string,
-    @Body() createPostDto: CreatePostDto,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() createOpinionDto: CreateOpinionDto,
     @UploadedFiles() photos: Express.Multer.File[],
   ) {
-    return this.postsService.create(id, createPostDto, photos);
+    return this.opinionsService.create(id, createOpinionDto, photos);
   }
 
   @Get()
   findAll() {
-    return this.postsService.findAll();
+    return this.opinionsService.findAll();
   }
 
   @Get('/user')
   findAllByUser(@Query('id') id: string) {
-    return this.postsService.findAllByUser(id);
+    return this.opinionsService.findAllByUser(id);
   }
 
   @Patch(':id')
@@ -48,12 +47,12 @@ export class PostsController {
     @Body() updatePostDto: UpdatePostDto,
     @UploadedFiles() photos: Express.Multer.File[],
   ) {
-    return this.postsService.update(id, updatePostDto, photos);
+    return this.opinionsService.update(id, updatePostDto, photos);
   }
 
-  @Delete(':id')
+  /* @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     console.log('entra');
-    return this.postsService.remove(id);
-  }
+    return this.opinionsService.remove(id);
+  } */
 }

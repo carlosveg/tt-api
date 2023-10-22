@@ -15,10 +15,10 @@ import { GetUser, RawHeaders } from './decorators';
 import { Auth } from './decorators/auth.decorator';
 import { RoleProtected } from './decorators/role-protected.decorator';
 import { CreateUserDto, LoginUserDto } from '../users/dto';
-import { User } from './entities/user.entity';
 import { UserRoleGuard } from './guargs/user-role/user-role.guard';
 import { ValidRoles } from './interfaces/valid-roles';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { User } from 'src/users/entities';
 
 @Controller('auth')
 export class AuthController {
@@ -59,7 +59,7 @@ export class AuthController {
     @GetUser('email') email: string,
     @RawHeaders() headers: string,
   ) {
-    return { user, email, headers };
+    return { user, email, headers, message: 'Ha accesado a la ruta privada' };
   }
 
   @Get('private3')

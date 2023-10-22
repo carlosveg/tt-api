@@ -4,7 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { S3Service } from 'src/s3/s3.service';
-import { User, UserImage } from 'src/users/entities';
+import { User } from 'src/users/entities';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jtw.strategy';
@@ -14,7 +14,7 @@ import { JwtStrategy } from './strategies/jtw.strategy';
   providers: [AuthService, JwtStrategy, S3Service],
   imports: [
     ConfigModule,
-    TypeOrmModule.forFeature([User, UserImage]),
+    TypeOrmModule.forFeature([User]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

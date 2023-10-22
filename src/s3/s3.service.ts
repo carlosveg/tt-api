@@ -52,13 +52,15 @@ export class S3Service {
     }
   }
 
-  async uploadFiles(files: Express.Multer.File[], keys: string[]) {
+  async uploadFiles(files: Express.Multer.File[]) {
     const bucket = this.configService.get<string>('BUCKET_NAME');
     const uploadPromises: Promise<string>[] = [];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const key = keys[i];
+      const key = `${file.originalname.split('.')[0]}${Date.now()}.${
+        file.originalname.split('.')[1]
+      }`;
 
       const input: PutObjectCommandInput = {
         Body: file.buffer,

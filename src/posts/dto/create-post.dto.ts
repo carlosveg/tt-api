@@ -1,4 +1,5 @@
 import { IsArray, IsOptional, IsString } from 'class-validator';
+import { Image } from '../entities/image.entity';
 
 export class CreatePostDto {
   @IsString()
@@ -7,11 +8,7 @@ export class CreatePostDto {
   @IsString()
   description: string;
 
-  @IsString({ each: true })
   @IsArray()
   @IsOptional()
-  images?: string[];
-
-  @IsString()
-  user: string;
+  images?: Image[];
 }

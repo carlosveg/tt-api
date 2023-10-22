@@ -1,6 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreatePostDto } from './create-post.dto';
 import { IsArray, IsString } from 'class-validator';
+import { Image } from '../entities/image.entity';
 
 export class UpdatePostDto extends PartialType(CreatePostDto) {
   @IsString()
@@ -9,10 +10,6 @@ export class UpdatePostDto extends PartialType(CreatePostDto) {
   @IsString()
   description?: string;
 
-  @IsString({ each: true })
-  @IsArray()
-  images?: string[];
-
-  @IsString()
-  user?: string;
+  // @IsArray()
+  // images?: Image[];
 }

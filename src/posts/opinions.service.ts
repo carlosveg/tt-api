@@ -7,19 +7,18 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Image } from 'src/posts/entities/image.entity';
-import { UserMinorista } from 'src/users/entities';
+import { User, UserMinorista } from 'src/users/entities';
 import { UsersService } from 'src/users/users.service';
 import { DataSource, Repository } from 'typeorm';
 import { S3Service } from '../s3/s3.service';
-import { CreatePostDto } from './dto/create-post.dto';
-import { Post } from './entities/post.entity';
-import { UpdatePostDto } from './dto/update-post.dto';
 import { CreateOpinionDto } from './dto/create-opinion.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
 import { Opinion } from './entities/opinion.entity';
+import { Post } from './entities/post.entity';
 
 @Injectable()
-export class PostsService {
-  private readonly logger = new Logger(PostsService.name);
+export class OpinionsService {
+  private readonly logger = new Logger(OpinionsService.name);
 
   constructor(
     @InjectRepository(Post)
@@ -37,20 +36,30 @@ export class PostsService {
 
   async create(
     id: string,
-    createPostDto: CreatePostDto,
+    createOpinionDto: CreateOpinionDto,
     photos: Express.Multer.File[],
   ) {
-    try {
-      /*
-        Buscamos que el curp que manden en el Body esté registrado
-        para asociarlo al post
-      */
-      const user = await this.userMinoristaRepository.findOne({
+    const postDB = await this.postRepository.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+
+    if (!postDB) throw new NotFoundException('Post not found');
+
+    let user: User | UserMinorista = await this.userService.findOne(
+      postDB.user.id,
+    );
+
+    if (user instanceof UserMinorista) {
+      user = await this.userMinoristaRepository.findOne({
         where: { id },
+        relations: { user: true },
       });
 
-      if (!user) throw new BadRequestException('User not found');
+      user = user.user;
+    }
 
+    try {
       const images = [];
 
       if (photos.length > 0) {
@@ -63,23 +72,23 @@ export class PostsService {
 
       await this.imageRepository.save(images);
 
-      const post = this.postRepository.create({
-        ...createPostDto,
+      const opinion = this.opinionRepository.create({
+        ...createOpinionDto,
         user,
         images,
+        post: postDB,
       });
 
-      await this.postRepository.save(post);
+      await this.opinionRepository.save(opinion);
 
-      return post;
+      return opinion;
     } catch (error) {
       this.logger.error(error);
-      throw new NotFoundException(error.message);
     }
   }
 
   async findOne(id: string) {
-    const post = await this.postRepository.findOneBy({ id });
+    const post = await this.opinionRepository.findOneBy({ id });
 
     if (!post) throw new BadRequestException();
 
@@ -87,7 +96,7 @@ export class PostsService {
   }
 
   async findAll() {
-    const posts = await this.postRepository.find({
+    const posts = await this.opinionRepository.find({
       relations: { images: true, user: true },
     });
 
@@ -158,7 +167,7 @@ export class PostsService {
     }
   }
 
-  async remove(id: string) {
+  /* async remove(id: string) {
     const post = await this.findOne(id);
 
     if (!post) throw new BadRequestException();
@@ -169,5 +178,5 @@ export class PostsService {
       status: HttpStatus.NO_CONTENT,
       message: 'Post was successfuly deleted',
     };
-  }
+  } */
 }

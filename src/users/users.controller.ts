@@ -6,11 +6,12 @@ import {
   Param,
   Patch,
   Post,
-  Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { CreateUserDto, UpdateUserDto } from './dto';
+import { MinoristaDto } from './dto/minorista.dto';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -23,8 +24,13 @@ export class UsersController {
   }
 
   @Get()
-  findAll(@Query() paginationDto: PaginationDto) {
-    return this.usersService.findAll(paginationDto);
+  findAll() {
+    return this.usersService.findAll();
+  }
+
+  @Get('/minoristas')
+  findAllMinoristas() {
+    return this.usersService.findAllMinoristas();
   }
 
   @Get(':id')
@@ -33,12 +39,46 @@ export class UsersController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  @UseInterceptors(FileInterceptor('photo'))
+  update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @UploadedFile() photo: Express.Multer.File,
+  ) {
+    return this.usersService.update(id, updateUserDto, photo);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
+  }
+
+  /* 
+    Favorites section
+   */
+  @Get(':id/favorites')
+  getFavoritesByUser(@Param('id') id: string) {
+    return this.usersService.getFavoritesByUser(id);
+  }
+
+  @Post(':id/favorites')
+  addFavorite(
+    @Param('id') id: string,
+    @Body() body: { favoriteUserId: string },
+  ) {
+    return this.usersService.addFavorite(id, body.favoriteUserId);
+  }
+
+  @Delete(':id/favorites')
+  deleteFavoriteUser(
+    @Param('id') id: string,
+    @Body() body: { favoriteUserId: string },
+  ) {
+    return this.usersService.removeFavorite(id, body.favoriteUserId);
+  }
+
+  @Post('create/minorista/:id')
+  createMinorista(@Param('id') id: string, @Body() minoristaDto: MinoristaDto) {
+    return this.usersService.createMinorista(id, minoristaDto);
   }
 }

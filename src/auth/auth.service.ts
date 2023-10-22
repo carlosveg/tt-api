@@ -1,7 +1,9 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -9,12 +11,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { S3Service } from 'src/s3/s3.service';
 import { Repository } from 'typeorm';
+import { v4 as uuid } from 'uuid';
 import { CreateUserDto, LoginUserDto } from '../users/dto';
 import { User } from '../users/entities/';
 import { JwtPayload } from './interfaces/jtw-payload.interface';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -25,6 +30,17 @@ export class AuthService {
   async create(createUserDto: CreateUserDto, photo: Express.Multer.File) {
     try {
       const { password, ...rest } = createUserDto;
+
+      const exists = await this.userRepository.findOne({
+        where: { curp: createUserDto.curp },
+      });
+
+      if (exists) {
+        throw new ConflictException(
+          `User with curp [${createUserDto.curp}] already exists`,
+        );
+      }
+
       const user = this.userRepository.create({
         ...rest,
         password: bcrypt.hashSync(password, 10),
@@ -44,7 +60,8 @@ export class AuthService {
 
       return { ...user, token: this.getJwtToken({ id: user.curp }) };
     } catch (error) {
-      console.log(error);
+      // console.log(error);
+
       this.handleDBErrors(error);
     }
   }
@@ -72,8 +89,9 @@ export class AuthService {
   private handleDBErrors(error: any): never {
     if (error.code === '23505') throw new BadRequestException(error.detail);
 
-    console.log(error);
+    // console.log(error);
+    this.logger.error(error);
 
-    throw new InternalServerErrorException('Revisar los logs');
+    throw new InternalServerErrorException(error.response);
   }
 }

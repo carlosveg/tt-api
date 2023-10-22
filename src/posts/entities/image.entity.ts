@@ -1,0 +1,31 @@
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Post } from './post.entity';
+import { ManyToOne } from 'typeorm';
+import { Opinion } from './opinion.entity';
+
+@Entity('images')
+export class Image {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column('text')
+  url: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @ManyToOne(() => Post, (post) => post.images)
+  post: Post;
+
+  @ManyToOne(() => Opinion, (op) => op.images)
+  opinion: Opinion;
+}

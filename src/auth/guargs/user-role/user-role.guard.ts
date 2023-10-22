@@ -8,7 +8,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { META_ROLES } from 'src/auth/decorators/role-protected.decorator';
-import { User } from 'src/auth/entities/user.entity';
+import { User } from 'src/users/entities';
 
 @Injectable()
 export class UserRoleGuard implements CanActivate {
@@ -34,6 +34,6 @@ export class UserRoleGuard implements CanActivate {
       if (validRoles.includes(role)) return true;
     }
 
-    throw new ForbiddenException(`User ${user.name} need a valid role`);
+    throw new ForbiddenException(`User ${user.fullName} need a valid role`);
   }
 }
