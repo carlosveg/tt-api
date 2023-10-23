@@ -28,12 +28,12 @@ export class Post {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => Image, (image) => image.post, { cascade: true })
+  @OneToMany(() => Image, (image) => image.post)
   images: Image[];
 
   @ManyToOne(() => UserMinorista, (user) => user.posts)
   user: UserMinorista;
 
-  @OneToMany(() => Opinion, (op) => op.post, { cascade: true })
-  opinions: Opinion;
+  @OneToMany(() => Opinion, (op) => op.post)
+  opinions: Opinion[];
 }

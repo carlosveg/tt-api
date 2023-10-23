@@ -22,13 +22,14 @@ export class Opinion {
   createdAt: Date;
 
   /* Relations */
-  @OneToMany(() => Image, (img) => img.opinion, { cascade: true })
+  @OneToMany(() => Image, (img) => img.opinion)
   images: Image[];
 
-  @ManyToOne(() => Post, (post) => post.opinions)
+  @ManyToOne(() => Post, (post) => post.opinions, {
+    onDelete: 'CASCADE',
+  })
   post: Post;
 
-  /* Implementar la relacion con usuario */
   @ManyToOne(() => User, (user) => user.opinions)
   user: User;
 }

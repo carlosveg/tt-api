@@ -10,6 +10,10 @@ export class SeedService {
     return 'SEED executed';
   }
 
+  private async deleteTables() {
+    // await this.
+  }
+
   private async insertInfo() {
     /* const users = initialData.users;
 

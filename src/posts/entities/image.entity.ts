@@ -23,9 +23,13 @@ export class Image {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => Post, (post) => post.images)
+  @ManyToOne(() => Post, (post) => post.images, {
+    onDelete: 'CASCADE',
+  })
   post: Post;
 
-  @ManyToOne(() => Opinion, (op) => op.images)
+  @ManyToOne(() => Opinion, (op) => op.images, {
+    onDelete: 'CASCADE',
+  })
   opinion: Opinion;
 }

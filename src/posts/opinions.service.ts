@@ -96,11 +96,11 @@ export class OpinionsService {
   }
 
   async findAll() {
-    const posts = await this.opinionRepository.find({
+    const opinions = await this.opinionRepository.find({
       relations: { images: true, user: true },
     });
 
-    return posts.map((post) => {
+    return opinions.map((post) => {
       const { images, ...rest } = post;
 
       return { ...rest, images: images.map((image) => image.url) };

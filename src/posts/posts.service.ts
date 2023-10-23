@@ -79,9 +79,12 @@ export class PostsService {
   }
 
   async findOne(id: string) {
-    const post = await this.postRepository.findOneBy({ id });
+    const post = await this.postRepository.findOne({
+      where: { id },
+      relations: { images: true, opinions: true },
+    });
 
-    if (!post) throw new BadRequestException();
+    if (!post) throw new NotFoundException();
 
     return post;
   }
@@ -89,6 +92,7 @@ export class PostsService {
   async findAll() {
     const posts = await this.postRepository.find({
       relations: { images: true, user: true },
+      order: { createdAt: 'DESC' },
     });
 
     return posts.map((post) => {
@@ -163,11 +167,19 @@ export class PostsService {
 
     if (!post) throw new BadRequestException();
 
-    await this.postRepository.remove(post);
+    try {
+      // for (const image of post.images) await this.imageRepository.remove(image);
+      // for (const opinion of post.opinions)
+      //   await this.opinionRepository.remove(opinion);
 
-    return {
-      status: HttpStatus.NO_CONTENT,
-      message: 'Post was successfuly deleted',
-    };
+      await this.postRepository.remove(post);
+
+      return {
+        status: HttpStatus.NO_CONTENT,
+        message: 'Post was successfuly deleted',
+      };
+    } catch (error) {
+      this.logger.error(error);
+    }
   }
 }

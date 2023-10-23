@@ -13,9 +13,8 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreatePostDto } from './dto/create-post.dto';
-import { PostsService } from './posts.service';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { CreateOpinionDto } from './dto/create-opinion.dto';
+import { PostsService } from './posts.service';
 
 @Controller('posts')
 export class PostsController {
@@ -36,6 +35,11 @@ export class PostsController {
     return this.postsService.findAll();
   }
 
+  @Get(':id')
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.postsService.findOne(id);
+  }
+
   @Get('/user')
   findAllByUser(@Query('id') id: string) {
     return this.postsService.findAllByUser(id);
@@ -53,7 +57,6 @@ export class PostsController {
 
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
-    console.log('entra');
     return this.postsService.remove(id);
   }
 }
