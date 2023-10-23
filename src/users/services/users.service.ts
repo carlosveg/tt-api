@@ -12,11 +12,11 @@ import * as bcrypt from 'bcrypt';
 import { S3Service } from 'src/s3/s3.service';
 import { DataSource, Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
-import { PaginationDto } from '../common/dto/pagination.dto';
-import { CreateUserDto, UpdateUserDto } from './dto';
-import { User } from './entities/user.entity';
-import { MinoristaDto } from './dto/minorista.dto';
-import { UserMinorista } from './entities';
+import { CreateUserDto, UpdateUserDto } from '../dto';
+import { MinoristaDto } from '../dto/minorista.dto';
+import { UserMinorista } from '../entities';
+import { User } from '../entities/user.entity';
+import { MinoristaService } from './minorista.service';
 
 @Injectable()
 export class UsersService {
@@ -28,6 +28,7 @@ export class UsersService {
     @InjectRepository(UserMinorista)
     private readonly minoristaRepository: Repository<UserMinorista>,
     private readonly s3Service: S3Service,
+    private readonly minoristaService: MinoristaService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -64,14 +65,15 @@ export class UsersService {
 
   async findAll() {
     const users = await this.userRepository.find({
-      relations: { minorista: true, opinions: true },
+      relations: { minorista: true /* , opinions: true */ },
     });
 
     users.forEach((user) => {
       delete user.password;
+      delete user.curp;
       // delete user.opinions;
       // delete user.userType;
-      // // delete user.isActive;
+      // delete user.isActive;
       // delete user.updatedAt;
     });
 
@@ -82,34 +84,12 @@ export class UsersService {
     return users;
   }
 
-  async findAllMinoristas() {
-    const users = await this.minoristaRepository.find({
-      relations: { user: true, posts: true },
-    });
-
-    const dataReturned = users.map((u) => {
-      const { user, ...rest } = u;
-
-      return {
-        email: user.email,
-        fullName: user.fullName,
-        ...rest,
-        posts: rest.posts.map((post) => {
-          delete post.updatedAt;
-          return post;
-        }),
-      };
-    });
-
-    return dataReturned;
-  }
-
   async findOne(id: string) {
-    const user = await this.userRepository.findOneBy({ curp: id });
+    const user = await this.userRepository.findOneBy({ id });
 
-    if (!user) throw new NotFoundException(`User with CURP [${id}] not found`);
+    if (!user) throw new NotFoundException(`User with id [${id}] not found`);
 
-    if (user.userType === 1) return this.getMinorista(id);
+    if (user.userType === 1) return this.minoristaService.getMinorista(id);
 
     /* QueryBuilder */
     // const queryBuilder = this.userRepository.createQueryBuilder();
@@ -123,8 +103,6 @@ export class UsersService {
     updateUserDto: UpdateUserDto,
     photo: Express.Multer.File,
   ) {
-    //const { urlImgProfile, ...toUpdate } = updateUserDto;
-
     const userDB = await this.findOne(id);
 
     if (updateUserDto.password)
@@ -159,7 +137,9 @@ export class UsersService {
 
       //await this.userRepository.save(user);
 
-      return user;
+      delete user.password;
+
+      return { status: HttpStatus.OK, message: 'User successfuly updated' };
     } catch (error) {
       await queryRunner.rollbackTransaction();
       await queryRunner.release();
@@ -177,11 +157,14 @@ export class UsersService {
   async remove(id: string) {
     const user = await this.findOne(id);
 
-    if (!user) throw new BadRequestException();
+    if (!user) throw new NotFoundException('User not found');
 
-    const updatedUser = await this.update(id, { isActive: false }, null);
+    await this.update(id, { isActive: false }, null);
 
-    return updatedUser;
+    return {
+      status: HttpStatus.OK,
+      message: 'User successfuly unsubscribed',
+    };
   }
 
   private handleDBExceptions(error: any) {
@@ -202,115 +185,5 @@ export class UsersService {
     } catch (error) {
       this.handleDBExceptions(error);
     }
-  }
-
-  /* 
-    Favorites section
-   */
-  async getFavoritesByUser(curp: string) {
-    try {
-      const user = await this.userRepository.findOne({
-        where: { curp },
-        relations: ['favorites'],
-      });
-
-      if (!user) throw new NotFoundException(`User not found`);
-
-      const favorites = user.favorites;
-
-      return favorites;
-    } catch (error) {
-      throw new Error(`Error while fetching favorites users: ${error.message}`);
-    }
-  }
-
-  async addFavorite(id: string, favoriteUserId: string) {
-    const user = await this.userRepository.findOne({
-      where: { curp: id },
-      relations: { favorites: true },
-    });
-
-    if (!user) throw new NotFoundException('User not found');
-
-    const favoriteUser = await this.userRepository.findOne({
-      where: { curp: favoriteUserId },
-    });
-
-    if (!favoriteUser)
-      throw new NotFoundException(
-        `Favorite user [${favoriteUserId}] not found`,
-      );
-
-    if (!user.favorites.some((u) => u.curp === favoriteUserId)) {
-      user.favorites.push(favoriteUser);
-      await this.userRepository.save(user);
-    } else throw new BadRequestException('User is already in your favorites');
-
-    return {
-      status: HttpStatus.OK,
-      message: 'User favorite was added successfully',
-    };
-  }
-
-  async removeFavorite(id: string, favoriteUserId: string) {
-    const user = await this.userRepository.findOne({
-      where: { curp: id },
-      relations: ['favorites'],
-    });
-
-    if (!user) throw new NotFoundException('User not found');
-
-    const favoriteUserIndex = user.favorites.findIndex(
-      (u) => u.curp === favoriteUserId,
-    );
-
-    if (favoriteUserIndex === -1)
-      throw new NotFoundException('Favorite user id not found');
-
-    user.favorites.splice(favoriteUserIndex, 1);
-
-    await this.userRepository.save(user);
-
-    return {
-      status: HttpStatus.OK,
-      message: 'User favorite was deleted successfully',
-    };
-  }
-
-  /* Minorista */
-  async createMinorista(id: string, minoristaDto: MinoristaDto) {
-    try {
-      const user = await this.userRepository.findOne({ where: { curp: id } });
-      const isMinorista = await this.minoristaRepository.findOne({
-        where: { id },
-      });
-
-      if (!user) throw new NotFoundException('User not found');
-      console.log(`User type => ${user.userType} ${typeof user.userType}`);
-      if (isMinorista) {
-        console.log('desmadre');
-        throw new BadRequestException('Ya es minorista');
-      }
-
-      console.log('llega aqui');
-      user.userType = 1;
-
-      const minorista = this.minoristaRepository.create({
-        id,
-        ...minoristaDto,
-        user,
-      });
-
-      this.userRepository.save(user);
-
-      return await this.minoristaRepository.save(minorista);
-    } catch (error) {
-      this.logger.error(error);
-      throw new ConflictException(error.message);
-    }
-  }
-
-  async getMinorista(id: string) {
-    return await this.minoristaRepository.findOne({ where: { id } });
   }
 }

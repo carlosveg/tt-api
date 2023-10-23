@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   UploadedFile,
@@ -12,12 +13,19 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateUserDto, UpdateUserDto } from './dto';
 import { MinoristaDto } from './dto/minorista.dto';
-import { UsersService } from './users.service';
+import { UsersService } from './services/users.service';
+import { MinoristaService } from './services/minorista.service';
+import { FavoritesService } from './services/favorites.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly minoristaService: MinoristaService,
+    private readonly favoritesService: FavoritesService,
+  ) {}
 
+  /* Deprecated */
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
@@ -28,20 +36,15 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  @Get('/minoristas')
-  findAllMinoristas() {
-    return this.usersService.findAllMinoristas();
-  }
-
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.findOne(id);
   }
 
   @Patch(':id')
   @UseInterceptors(FileInterceptor('photo'))
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
     @UploadedFile() photo: Express.Multer.File,
   ) {
@@ -49,36 +52,44 @@ export class UsersController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.remove(id);
   }
 
   /* 
     Favorites section
    */
-  @Get(':id/favorites')
-  getFavoritesByUser(@Param('id') id: string) {
-    return this.usersService.getFavoritesByUser(id);
+  @Get('favorites/:id')
+  getFavoritesByUser(@Param('id', ParseUUIDPipe) id: string) {
+    return this.favoritesService.getFavoritesByUser(id);
   }
 
-  @Post(':id/favorites')
+  @Post('favorites/:id/:favId')
   addFavorite(
-    @Param('id') id: string,
-    @Body() body: { favoriteUserId: string },
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('favId', ParseUUIDPipe) favId: string,
   ) {
-    return this.usersService.addFavorite(id, body.favoriteUserId);
+    return this.favoritesService.addFavorite(id, favId);
   }
 
-  @Delete(':id/favorites')
+  @Delete('favorites/:id/:favId')
   deleteFavoriteUser(
-    @Param('id') id: string,
-    @Body() body: { favoriteUserId: string },
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('favId', ParseUUIDPipe) favId: string,
   ) {
-    return this.usersService.removeFavorite(id, body.favoriteUserId);
+    return this.favoritesService.removeFavorite(id, favId);
+  }
+
+  @Get('/minoristas')
+  findAllMinoristas() {
+    return this.minoristaService.findAllMinoristas();
   }
 
   @Post('create/minorista/:id')
-  createMinorista(@Param('id') id: string, @Body() minoristaDto: MinoristaDto) {
-    return this.usersService.createMinorista(id, minoristaDto);
+  createMinorista(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() minoristaDto: MinoristaDto,
+  ) {
+    return this.minoristaService.createMinorista(id, minoristaDto);
   }
 }

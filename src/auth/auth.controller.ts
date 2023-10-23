@@ -5,20 +5,19 @@ import {
   Post,
   Req,
   UploadedFile,
-  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { User } from 'src/users/entities';
+import { CreateUserDto, LoginUserDto } from '../users/dto';
 import { AuthService } from './auth.service';
 import { GetUser, RawHeaders } from './decorators';
 import { Auth } from './decorators/auth.decorator';
 import { RoleProtected } from './decorators/role-protected.decorator';
-import { CreateUserDto, LoginUserDto } from '../users/dto';
 import { UserRoleGuard } from './guargs/user-role/user-role.guard';
 import { ValidRoles } from './interfaces/valid-roles';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { User } from 'src/users/entities';
 
 @Controller('auth')
 export class AuthController {

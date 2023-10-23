@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Image } from 'src/posts/entities/image.entity';
 import { UserMinorista } from 'src/users/entities';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from 'src/users/services/users.service';
 import { DataSource, Repository } from 'typeorm';
 import { S3Service } from '../s3/s3.service';
 import { CreatePostDto } from './dto/create-post.dto';

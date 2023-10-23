@@ -29,11 +29,16 @@ export class AuthService {
 
   async create(createUserDto: CreateUserDto, photo: Express.Multer.File) {
     try {
-      const { password, ...rest } = createUserDto;
-
+      const { password, curp, ...rest } = createUserDto;
+      /*
+        TODO: hashear el curp del usuario y hacer que funcione la verificacion si ya existe
+      */
+      // const hashCurp = bcrypt.hashSync(curp, 10);
       const exists = await this.userRepository.findOne({
-        where: { curp: createUserDto.curp },
+        where: { curp },
       });
+
+      console.log(exists);
 
       if (exists) {
         throw new ConflictException(
@@ -43,6 +48,7 @@ export class AuthService {
 
       const user = this.userRepository.create({
         ...rest,
+        curp,
         password: bcrypt.hashSync(password, 10),
       });
 
@@ -71,7 +77,7 @@ export class AuthService {
 
     const user = await this.userRepository.findOne({
       where: { email },
-      select: { email: true, password: true, curp: true },
+      select: { email: true, password: true, id: true },
     });
 
     if (!user) throw new UnauthorizedException('Not valid credentials');
@@ -79,7 +85,7 @@ export class AuthService {
     if (!bcrypt.compareSync(password, user.password))
       throw new UnauthorizedException('Not valid credentials');
 
-    return { ...user, token: this.getJwtToken({ id: user.curp }) };
+    return { ...user, token: this.getJwtToken({ id: user.id }) };
   }
 
   private getJwtToken(payload: JwtPayload) {

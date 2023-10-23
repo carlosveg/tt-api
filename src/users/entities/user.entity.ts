@@ -1,4 +1,4 @@
-import { Post } from 'src/posts/entities/post.entity';
+import { Opinion } from 'src/posts/entities/opinion.entity';
 import {
   Column,
   CreateDateColumn,
@@ -8,12 +8,11 @@ import {
   OneToMany,
   OneToOne,
   PrimaryColumn,
-  Relation,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { UserMinorista } from './user-minorista.entity';
 import { UserScore } from './user-score.entity';
-import { Opinion } from 'src/posts/entities/opinion.entity';
 
 /* 
   En principio tendremos 3 tipos de usuario
@@ -25,7 +24,11 @@ import { Opinion } from 'src/posts/entities/opinion.entity';
 
 @Entity({ name: 'users' })
 export class User {
-  @PrimaryColumn('text', { nullable: false, unique: true })
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  // @PrimaryColumn('text', { nullable: false, unique: true })
+  @Column('text', { nullable: false, unique: true })
   curp: string;
 
   @Column('text', { nullable: false })
