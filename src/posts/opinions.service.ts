@@ -6,16 +6,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Image } from 'src/posts/entities/image.entity';
-import { User, UserMinorista } from 'src/users/entities';
-import { UsersService } from 'src/users/services/users.service';
 import { DataSource, Repository } from 'typeorm';
+import { Image } from '../posts/entities/image.entity';
 import { S3Service } from '../s3/s3.service';
+import { User, UserMinorista } from '../users/entities';
+import { UsersService } from '../users/services/users.service';
 import { CreateOpinionDto } from './dto/create-opinion.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
+import { UpdateOpinionDto } from './dto/update-opinion.dto';
 import { Opinion } from './entities/opinion.entity';
 import { Post } from './entities/post.entity';
-import { UpdateOpinionDto } from './dto/update-opinion.dto';
 
 @Injectable()
 export class OpinionsService {
@@ -51,7 +50,6 @@ export class OpinionsService {
       { where: { id: postDB.user.id }, relations: { user: true } },
     );
 
-    console.log(user);
     if (!user) throw new NotFoundException('User minorista not found');
 
     user = user.user;
@@ -77,7 +75,10 @@ export class OpinionsService {
 
       await this.opinionRepository.save(opinion);
 
-      return opinion;
+      return {
+        status: HttpStatus.CREATED,
+        message: 'Opinion creada con exito',
+      };
     } catch (error) {
       this.logger.error(error);
     }
@@ -131,7 +132,6 @@ export class OpinionsService {
     updateOpinionDto: UpdateOpinionDto,
     photos: Express.Multer.File[],
   ) {
-    console.log(updateOpinionDto);
     const opinionDB = await this.findOne(id);
 
     if (!opinionDB)

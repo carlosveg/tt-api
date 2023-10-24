@@ -15,12 +15,15 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostsService } from './posts.service';
+import { Auth } from '../auth/decorators';
+import { ValidRoles } from '../auth/interfaces/valid-roles';
 
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post('/create/:id')
+  // @Auth(ValidRoles.MINORISTA)
   @UseInterceptors(FilesInterceptor('photos'))
   create(
     @Param('id', ParseUUIDPipe) id: string,
@@ -46,6 +49,7 @@ export class PostsController {
   }
 
   @Patch(':id')
+  // @Auth(ValidRoles.MINORISTA)
   @UseInterceptors(FilesInterceptor('photos'))
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -56,6 +60,7 @@ export class PostsController {
   }
 
   @Delete(':id')
+  // @Auth(ValidRoles.MINORISTA)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.postsService.remove(id);
   }

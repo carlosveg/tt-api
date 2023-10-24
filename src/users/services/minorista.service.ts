@@ -1,12 +1,14 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpStatus,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ValidRoles } from '../../auth/interfaces/valid-roles';
 import { MinoristaDto } from '../dto/minorista.dto';
 import { UserMinorista } from '../entities';
 import { User } from '../entities/user.entity';
@@ -57,7 +59,7 @@ export class MinoristaService {
         throw new BadRequestException('Ya es minorista');
       }
 
-      user.userType = 1;
+      user.userType = ValidRoles.MINORISTA;
 
       const minorista = this.minoristaRepository.create({
         id,
@@ -67,7 +69,12 @@ export class MinoristaService {
 
       this.userRepository.save(user);
 
-      return await this.minoristaRepository.save(minorista);
+      await this.minoristaRepository.save(minorista);
+
+      return {
+        status: HttpStatus.CREATED,
+        message: 'Usuario convertido a minorista',
+      };
     } catch (error) {
       this.logger.error(error);
       throw new ConflictException(error.message);

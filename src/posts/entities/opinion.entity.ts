@@ -6,9 +6,9 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { User } from '../../users/entities';
 import { Image } from './image.entity';
 import { Post } from './post.entity';
-import { User } from 'src/users/entities';
 
 @Entity()
 export class Opinion {

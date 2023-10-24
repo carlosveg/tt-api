@@ -1,4 +1,3 @@
-import { Post } from 'src/posts/entities/post.entity';
 import {
   Column,
   Entity,
@@ -9,7 +8,7 @@ import {
   Relation,
 } from 'typeorm';
 import { User } from '.';
-import { UserTypeEnum } from 'src/common/enum';
+import { Post } from '../../posts/entities/post.entity';
 
 @Entity('user_minorista')
 export class UserMinorista {

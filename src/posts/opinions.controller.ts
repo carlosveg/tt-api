@@ -7,21 +7,22 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  Query,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateOpinionDto } from './dto/create-opinion.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
-import { OpinionsService } from './opinions.service';
 import { UpdateOpinionDto } from './dto/update-opinion.dto';
+import { OpinionsService } from './opinions.service';
+import { Auth } from '../auth/decorators';
+import { ValidRoles } from '../auth/interfaces/valid-roles';
 
 @Controller('opinions')
 export class OpinionsController {
   constructor(private readonly opinionsService: OpinionsService) {}
 
   @Post('/create/:id')
+  // @Auth()
   @UseInterceptors(FilesInterceptor('photos'))
   create(
     @Param('id', ParseUUIDPipe) id: string,
@@ -47,6 +48,7 @@ export class OpinionsController {
   }
 
   @Patch('/post/:id')
+  // @Auth()
   @UseInterceptors(FilesInterceptor('photos'))
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -57,6 +59,7 @@ export class OpinionsController {
   }
 
   @Delete(':id')
+  // @Auth()
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.opinionsService.remove(id);
   }

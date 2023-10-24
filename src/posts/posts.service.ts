@@ -6,11 +6,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Image } from 'src/posts/entities/image.entity';
-import { UserMinorista } from 'src/users/entities';
-import { UsersService } from 'src/users/services/users.service';
 import { DataSource, Repository } from 'typeorm';
+import { Image } from '../posts/entities/image.entity';
 import { S3Service } from '../s3/s3.service';
+import { UserMinorista } from '../users/entities';
+import { UsersService } from '../users/services/users.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Opinion } from './entities/opinion.entity';
@@ -163,7 +163,6 @@ export class PostsService {
       await queryRunner.rollbackTransaction();
       await queryRunner.release();
 
-      console.log(error);
       this.logger.error(error);
     }
   }

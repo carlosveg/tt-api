@@ -9,9 +9,8 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { S3Service } from 'src/s3/s3.service';
 import { Repository } from 'typeorm';
-import { v4 as uuid } from 'uuid';
+import { S3Service } from '../s3/s3.service';
 import { CreateUserDto, LoginUserDto } from '../users/dto';
 import { User } from '../users/entities/';
 import { JwtPayload } from './interfaces/jtw-payload.interface';
@@ -38,8 +37,6 @@ export class AuthService {
         where: { curp },
       });
 
-      console.log(exists);
-
       if (exists) {
         throw new ConflictException(
           `User with curp [${createUserDto.curp}] already exists`,
@@ -64,10 +61,8 @@ export class AuthService {
       await this.userRepository.save(user);
       delete user.password;
 
-      return { ...user, token: this.getJwtToken({ id: user.curp }) };
+      return { ...user, token: this.getJwtToken({ id: user.id }) };
     } catch (error) {
-      // console.log(error);
-
       this.handleDBErrors(error);
     }
   }
@@ -95,7 +90,6 @@ export class AuthService {
   private handleDBErrors(error: any): never {
     if (error.code === '23505') throw new BadRequestException(error.detail);
 
-    // console.log(error);
     this.logger.error(error);
 
     throw new InternalServerErrorException(error.response);

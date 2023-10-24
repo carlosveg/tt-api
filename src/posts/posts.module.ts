@@ -1,15 +1,16 @@
 import { Module } from '@nestjs/common';
-import { PostsService } from './posts.service';
-import { PostsController } from './posts.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Post } from './entities/post.entity';
-import { UsersModule } from 'src/users/users.module';
-import { S3Service } from 'src/s3/s3.service';
 import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from '../auth/auth.module';
+import { S3Service } from '../s3/s3.service';
+import { UsersModule } from '../users/users.module';
 import { Image } from './entities/image.entity';
 import { Opinion } from './entities/opinion.entity';
-import { OpinionsService } from './opinions.service';
+import { Post } from './entities/post.entity';
 import { OpinionsController } from './opinions.controller';
+import { OpinionsService } from './opinions.service';
+import { PostsController } from './posts.controller';
+import { PostsService } from './posts.service';
 
 @Module({
   controllers: [PostsController, OpinionsController],
@@ -18,6 +19,7 @@ import { OpinionsController } from './opinions.controller';
     TypeOrmModule.forFeature([Post, Image, Opinion]),
     UsersModule,
     ConfigModule,
+    AuthModule,
   ],
 })
 export class PostsModule {}

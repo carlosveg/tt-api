@@ -11,6 +11,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Auth } from '../auth/decorators';
 import { CreateUserDto, UpdateUserDto } from './dto';
 import { MinoristaDto } from './dto/minorista.dto';
 import { UsersService } from './services';
@@ -46,6 +47,7 @@ export class UsersController {
   }
 
   @Patch(':id')
+  // @Auth()
   @UseInterceptors(FileInterceptor('photo'))
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -56,19 +58,22 @@ export class UsersController {
   }
 
   @Delete(':id')
+  // @Auth()
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.remove(id);
   }
 
   /* 
-    Favorites section
-   */
+  Favorites section
+  */
   @Get('favorites/:id')
+  // @Auth()
   getFavoritesByUser(@Param('id', ParseUUIDPipe) id: string) {
     return this.favoritesService.getFavoritesByUser(id);
   }
 
   @Post('favorites/:id/:idFav')
+  // @Auth()
   addFavorite(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('idFav', ParseUUIDPipe) idFav: string,
@@ -77,6 +82,7 @@ export class UsersController {
   }
 
   @Delete('favorites/:id/:idFav')
+  // @Auth()
   deleteFavoriteUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('idFav', ParseUUIDPipe) idFav: string,
@@ -85,6 +91,7 @@ export class UsersController {
   }
 
   @Post('create/minorista/:id')
+  // @Auth()
   createMinorista(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() minoristaDto: MinoristaDto,

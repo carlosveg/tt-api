@@ -1,4 +1,3 @@
-import { UserMinorista } from 'src/users/entities';
 import {
   Column,
   CreateDateColumn,
@@ -8,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserMinorista } from '../../users/entities';
 import { Image } from './image.entity';
 import { Opinion } from './opinion.entity';
 

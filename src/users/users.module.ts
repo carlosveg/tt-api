@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User, UserMinorista, UserScore } from './entities';
-import { UsersController } from './users.controller';
 import { ConfigModule } from '@nestjs/config';
-import { UsersService, MinoristaService, FavoritesService } from './services';
-import { S3Service } from 'src/s3/s3.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from '../auth/auth.module';
+import { S3Service } from '../s3/s3.service';
+import { User, UserMinorista, UserScore } from './entities';
+import { FavoritesService, MinoristaService, UsersService } from './services';
+import { UsersController } from './users.controller';
 
 @Module({
   controllers: [UsersController],
@@ -12,6 +13,7 @@ import { S3Service } from 'src/s3/s3.service';
   imports: [
     TypeOrmModule.forFeature([User, UserScore, UserMinorista]),
     ConfigModule,
+    AuthModule,
   ],
   exports: [UsersService, TypeOrmModule],
 })

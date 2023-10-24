@@ -1,4 +1,3 @@
-import { Opinion } from 'src/posts/entities/opinion.entity';
 import {
   Column,
   CreateDateColumn,
@@ -7,10 +6,11 @@ import {
   ManyToMany,
   OneToMany,
   OneToOne,
-  PrimaryColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { ValidRoles } from '../../auth/interfaces/valid-roles';
+import { Opinion } from '../../posts/entities/opinion.entity';
 import { UserMinorista } from './user-minorista.entity';
 import { UserScore } from './user-score.entity';
 
@@ -43,8 +43,13 @@ export class User {
   @Column('text', { nullable: false })
   phone: string;
 
-  @Column({ type: 'numeric', default: 0 })
-  userType: number;
+  @Column({
+    type: 'enum',
+    enum: ValidRoles,
+    default: ValidRoles.USER,
+    nullable: false,
+  })
+  userType: ValidRoles;
 
   @Column('boolean', { default: true })
   isActive: boolean;

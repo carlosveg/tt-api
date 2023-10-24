@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ConflictException,
   HttpStatus,
   Injectable,
   InternalServerErrorException,
@@ -9,11 +8,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { S3Service } from 'src/s3/s3.service';
 import { DataSource, Repository } from 'typeorm';
-import { v4 as uuid } from 'uuid';
+import { ValidRoles } from '../../auth/interfaces/valid-roles';
+import { S3Service } from '../../s3/s3.service';
 import { CreateUserDto, UpdateUserDto } from '../dto';
-import { MinoristaDto } from '../dto/minorista.dto';
 import { UserMinorista } from '../entities';
 import { User } from '../entities/user.entity';
 import { MinoristaService } from './minorista.service';
@@ -89,7 +87,8 @@ export class UsersService {
 
     if (!user) throw new NotFoundException(`User with id [${id}] not found`);
 
-    if (user.userType === 1) return this.minoristaService.getMinorista(id);
+    if (user.userType === ValidRoles.MINORISTA)
+      return this.minoristaService.getMinorista(id);
 
     /* QueryBuilder */
     // const queryBuilder = this.userRepository.createQueryBuilder();
@@ -123,7 +122,9 @@ export class UsersService {
     try {
       if (photo) {
         // await queryRunner.manager.delete(UserImage, { user: { curp: id } });
-        const name = `${uuid()}.${photo.originalname.split('.')[1]}`;
+        const name = `${photo.originalname.split('.')[0]}${Date.now()}.${
+          photo.originalname.split('.')[1]
+        }`;
         const url = await this.s3Service.uploadFile(photo, name);
         user.urlImgProfile = url;
       }
