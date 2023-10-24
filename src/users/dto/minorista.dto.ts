@@ -1,4 +1,5 @@
-import { IsString } from 'class-validator';
+import { IsEnum, IsString } from 'class-validator';
+import { UserTypeEnum } from 'src/common/enum';
 
 export class MinoristaDto {
   @IsString()
@@ -6,4 +7,7 @@ export class MinoristaDto {
 
   @IsString()
   direccion_negocio: string;
+
+  /* @IsEnum(UserTypeEnum)
+  type: UserTypeEnum; */
 }

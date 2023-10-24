@@ -9,25 +9,33 @@ import {
   Relation,
 } from 'typeorm';
 import { User } from '.';
+import { UserTypeEnum } from 'src/common/enum';
 
 @Entity('user_minorista')
 export class UserMinorista {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string;
 
   @Column('text')
   ocupacion: string;
 
+  /* @Column({
+    type: 'enum',
+    enum: UserTypeEnum,
+    nullable: false,
+    default: UserTypeEnum.USER,
+  })
+  type: UserTypeEnum; */
+
   @Column('text')
   direccion_negocio: string;
 
   @OneToOne(() => User)
-  @JoinColumn({ name: 'curp' })
+  @JoinColumn({ name: 'idUser' })
   user: Relation<User>;
 
   @OneToMany(() => Post, (userPost) => userPost.user, {
     cascade: true,
-    // eager: true,
   })
   posts?: Post[];
 }

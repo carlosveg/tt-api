@@ -15,6 +15,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateOpinionDto } from './dto/create-opinion.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { OpinionsService } from './opinions.service';
+import { UpdateOpinionDto } from './dto/update-opinion.dto';
 
 @Controller('opinions')
 export class OpinionsController {
@@ -35,24 +36,28 @@ export class OpinionsController {
     return this.opinionsService.findAll();
   }
 
-  @Get('/user')
-  findAllByUser(@Query('id') id: string) {
+  @Get('/user/:id')
+  findAllByUser(@Param('id', ParseUUIDPipe) id: string) {
     return this.opinionsService.findAllByUser(id);
   }
 
-  @Patch(':id')
+  @Get('/post/:id')
+  findAllByPost(@Param('id', ParseUUIDPipe) id: string) {
+    return this.opinionsService.findAllByPost(id);
+  }
+
+  @Patch('/post/:id')
   @UseInterceptors(FilesInterceptor('photos'))
   update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updatePostDto: UpdatePostDto,
+    @Body() updateOpinionDto: UpdateOpinionDto,
     @UploadedFiles() photos: Express.Multer.File[],
   ) {
-    return this.opinionsService.update(id, updatePostDto, photos);
+    return this.opinionsService.update(id, updateOpinionDto, photos);
   }
 
-  /* @Delete(':id')
+  @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
-    console.log('entra');
     return this.opinionsService.remove(id);
-  } */
+  }
 }

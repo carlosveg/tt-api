@@ -23,7 +23,7 @@ export class PostsController {
   @Post('/create/:id')
   @UseInterceptors(FilesInterceptor('photos'))
   create(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() createPostDto: CreatePostDto,
     @UploadedFiles() photos: Express.Multer.File[],
   ) {
@@ -40,8 +40,8 @@ export class PostsController {
     return this.postsService.findOne(id);
   }
 
-  @Get('/user')
-  findAllByUser(@Query('id') id: string) {
+  @Get('/user/:id')
+  findAllByUser(@Param('id', ParseUUIDPipe) id: string) {
     return this.postsService.findAllByUser(id);
   }
 

@@ -11,7 +11,7 @@ import { Opinion } from './opinion.entity';
 
 @Entity('images')
 export class Image {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: number;
 
   @Column('text')

@@ -15,6 +15,7 @@ import { CreateOpinionDto } from './dto/create-opinion.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Opinion } from './entities/opinion.entity';
 import { Post } from './entities/post.entity';
+import { UpdateOpinionDto } from './dto/update-opinion.dto';
 
 @Injectable()
 export class OpinionsService {
@@ -46,18 +47,14 @@ export class OpinionsService {
 
     if (!postDB) throw new NotFoundException('Post not found');
 
-    let user: User | UserMinorista = await this.userService.findOne(
-      postDB.user.id,
+    let user: User | UserMinorista = await this.userMinoristaRepository.findOne(
+      { where: { id: postDB.user.id }, relations: { user: true } },
     );
 
-    if (user instanceof UserMinorista) {
-      user = await this.userMinoristaRepository.findOne({
-        where: { id },
-        relations: { user: true },
-      });
+    console.log(user);
+    if (!user) throw new NotFoundException('User minorista not found');
 
-      user = user.user;
-    }
+    user = user.user;
 
     try {
       const images = [];
@@ -68,9 +65,8 @@ export class OpinionsService {
           const image = this.imageRepository.create({ url });
           images.push(image);
         });
+        await this.imageRepository.save(images);
       }
-
-      await this.imageRepository.save(images);
 
       const opinion = this.opinionRepository.create({
         ...createOpinionDto,
@@ -88,16 +84,16 @@ export class OpinionsService {
   }
 
   async findOne(id: string) {
-    const post = await this.opinionRepository.findOneBy({ id });
+    const opinion = await this.opinionRepository.findOneBy({ id });
 
-    if (!post) throw new BadRequestException();
+    if (!opinion) throw new BadRequestException('Resource not found :c');
 
-    return post;
+    return opinion;
   }
 
   async findAll() {
     const opinions = await this.opinionRepository.find({
-      relations: { images: true, user: true },
+      relations: { images: true, user: true, post: true },
     });
 
     return opinions.map((post) => {
@@ -121,62 +117,75 @@ export class OpinionsService {
     }));
   }
 
+  async findAllByPost(id: string) {
+    const opinions = await this.opinionRepository.find({
+      where: { post: { id } },
+      relations: { images: true },
+    });
+
+    return opinions;
+  }
+
   async update(
     id: string,
-    updatePostDto: UpdatePostDto,
+    updateOpinionDto: UpdateOpinionDto,
     photos: Express.Multer.File[],
   ) {
-    const postDB = await this.findOne(id);
+    console.log(updateOpinionDto);
+    const opinionDB = await this.findOne(id);
 
-    if (!postDB) throw new BadRequestException();
+    if (!opinionDB)
+      throw new NotFoundException(`Opinion with id ${id} not found`);
 
-    Object.assign(postDB, updatePostDto);
+    Object.assign(opinionDB, updateOpinionDto);
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      const images = [];
       if (photos.length > 0) {
+        const images = [];
         const imagesUrl = await this.s3Service.uploadFiles(photos);
+
         imagesUrl.forEach((url) => {
           const image = this.imageRepository.create({ url });
           images.push(image);
         });
+
+        await this.imageRepository.save(images);
+        opinionDB.images = images;
       }
 
-      await this.imageRepository.save(images);
-
-      postDB.images = images;
-
       // intenta guardar
-      await queryRunner.manager.save(postDB);
+      await queryRunner.manager.save(opinionDB);
       // hace el commit de la transaccion
       await queryRunner.commitTransaction();
       // desconecta el queryRunner
       await queryRunner.release();
 
-      return postDB;
+      return {
+        status: HttpStatus.OK,
+        message: 'Resource was successfuly updated',
+      };
     } catch (error) {
       await queryRunner.rollbackTransaction();
       await queryRunner.release();
 
-      console.log(error);
       this.logger.error(error);
     }
   }
 
-  /* async remove(id: string) {
-    const post = await this.findOne(id);
+  async remove(id: string) {
+    const opinion = await this.opinionRepository.findOne({ where: { id } });
 
-    if (!post) throw new BadRequestException();
+    if (!opinion) throw new NotFoundException(`Resource not found [${id}]`);
 
-    await this.postRepository.remove(post);
+    await this.opinionRepository.remove(opinion);
 
     return {
-      status: HttpStatus.NO_CONTENT,
-      message: 'Post was successfuly deleted',
+      status: HttpStatus.OK,
+      message: 'Resource was successfuly deleted',
     };
-  } */
+  }
 }

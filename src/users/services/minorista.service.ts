@@ -1,18 +1,12 @@
 import {
   BadRequestException,
   ConflictException,
-  HttpStatus,
   Injectable,
-  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as bcrypt from 'bcrypt';
-import { S3Service } from 'src/s3/s3.service';
-import { DataSource, Repository } from 'typeorm';
-import { v4 as uuid } from 'uuid';
-import { CreateUserDto, UpdateUserDto } from '../dto';
+import { Repository } from 'typeorm';
 import { MinoristaDto } from '../dto/minorista.dto';
 import { UserMinorista } from '../entities';
 import { User } from '../entities/user.entity';
@@ -26,8 +20,6 @@ export class MinoristaService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(UserMinorista)
     private readonly minoristaRepository: Repository<UserMinorista>,
-    private readonly s3Service: S3Service,
-    private readonly dataSource: DataSource,
   ) {}
 
   async findAllMinoristas() {

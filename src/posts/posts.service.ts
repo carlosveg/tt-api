@@ -12,10 +12,9 @@ import { UsersService } from 'src/users/services/users.service';
 import { DataSource, Repository } from 'typeorm';
 import { S3Service } from '../s3/s3.service';
 import { CreatePostDto } from './dto/create-post.dto';
-import { Post } from './entities/post.entity';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { CreateOpinionDto } from './dto/create-opinion.dto';
 import { Opinion } from './entities/opinion.entity';
+import { Post } from './entities/post.entity';
 
 @Injectable()
 export class PostsService {
@@ -55,13 +54,14 @@ export class PostsService {
 
       if (photos.length > 0) {
         const imagesUrl = await this.s3Service.uploadFiles(photos);
+
         imagesUrl.forEach((url) => {
           const image = this.imageRepository.create({ url });
           images.push(image);
         });
-      }
 
-      await this.imageRepository.save(images);
+        await this.imageRepository.save(images);
+      }
 
       const post = this.postRepository.create({
         ...createPostDto,
@@ -71,7 +71,10 @@ export class PostsService {
 
       await this.postRepository.save(post);
 
-      return post;
+      return {
+        status: HttpStatus.CREATED,
+        message: 'Post was successfuly created',
+      };
     } catch (error) {
       this.logger.error(error);
       throw new NotFoundException(error.message);
@@ -132,18 +135,18 @@ export class PostsService {
     await queryRunner.startTransaction();
 
     try {
-      const images = [];
       if (photos.length > 0) {
+        const images = [];
         const imagesUrl = await this.s3Service.uploadFiles(photos);
+
         imagesUrl.forEach((url) => {
           const image = this.imageRepository.create({ url });
           images.push(image);
         });
+
+        await this.imageRepository.save(images);
+        postDB.images = images;
       }
-
-      await this.imageRepository.save(images);
-
-      postDB.images = images;
 
       // intenta guardar
       await queryRunner.manager.save(postDB);
@@ -152,7 +155,10 @@ export class PostsService {
       // desconecta el queryRunner
       await queryRunner.release();
 
-      return postDB;
+      return {
+        status: HttpStatus.OK,
+        message: 'Post was successfuly updated',
+      };
     } catch (error) {
       await queryRunner.rollbackTransaction();
       await queryRunner.release();
@@ -168,10 +174,6 @@ export class PostsService {
     if (!post) throw new BadRequestException();
 
     try {
-      // for (const image of post.images) await this.imageRepository.remove(image);
-      // for (const opinion of post.opinions)
-      //   await this.opinionRepository.remove(opinion);
-
       await this.postRepository.remove(post);
 
       return {
