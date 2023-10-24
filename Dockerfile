@@ -6,10 +6,10 @@ USER node
 WORKDIR /home/node
 
 COPY package*.json ./
-RUN npm ci
+RUN yarn
 
 COPY --chown=node:node . .
-RUN npm run build \
+RUN yarn run build \
   && npm prune --production
 
 # ---
