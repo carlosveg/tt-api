@@ -1,25 +1,28 @@
-# Development stage
-FROM node:16 as development
-WORKDIR /usr/src/app
+FROM node:16-alpine as builder
+
+ENV NODE_ENV build
+
+USER node
+WORKDIR /home/node
+
 COPY package*.json ./
-RUN yarn
-COPY tsconfig.json tsconfig.build.json ./
-COPY ./src ./src
-CMD [ "yarn", "run", "start" ]
+RUN npm ci
 
-# Builder stage
-FROM development as builder
-WORKDIR /usr/src/app
-# Build the app with devDependencies still installed from "development" stage
-RUN yarn run build
-# Clear dependencies and reinstall for production (no devDependencies)
-RUN rm -rf node_modules
-RUN npm ci --only=production
+COPY --chown=node:node . .
+RUN npm run build \
+  && npm prune --production
 
+# ---
 
-# Production stage
-FROM alpine:latest as production
-RUN apk --no-cache add nodejs ca-certificates
-WORKDIR /root/
-COPY --from=builder /usr/src/app ./
-CMD [ "node", "dist/main" ]
+FROM node:16-alpine
+
+ENV NODE_ENV production
+
+USER node
+WORKDIR /home/node
+
+COPY --from=builder --chown=node:node /home/node/package*.json ./
+COPY --from=builder --chown=node:node /home/node/node_modules/ ./node_modules/
+COPY --from=builder --chown=node:node /home/node/dist/ ./dist/
+
+CMD ["node", "dist/server.js"]
