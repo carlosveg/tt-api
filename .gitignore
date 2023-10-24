@@ -1,8 +1,9 @@
 postgres/
 .env
 
-Dockerfile
+# Dockerfile
 docker-compose_BKP.yml
+docker-compose.yml
 
 # compiled output
 /dist
