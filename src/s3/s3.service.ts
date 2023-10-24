@@ -33,7 +33,7 @@ export class S3Service {
       Bucket: bucket,
       Key: uniqueName,
       ContentType: 'auto',
-      ACL: '',
+      // ACL: '',
     };
 
     try {
@@ -67,7 +67,7 @@ export class S3Service {
         Bucket: bucket,
         Key: key,
         ContentType: 'auto',
-        ACL: '',
+        // ACL: '',
       };
 
       try {
