@@ -1,12 +1,13 @@
-import { IsString } from 'class-validator';
+import { IsEnum, IsString } from 'class-validator';
+import { catalogEnum } from 'src/common/enum';
 
 export class MinoristaDto {
-  @IsString()
-  ocupacion: string;
+  @IsEnum({ enum: catalogEnum })
+  ocupacion: catalogEnum;
 
   @IsString()
-  direccion_negocio: string;
+  latitud: string;
 
-  /* @IsEnum(UserTypeEnum)
-  type: UserTypeEnum; */
+  @IsString()
+  longitud: string;
 }

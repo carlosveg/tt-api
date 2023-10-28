@@ -46,6 +46,12 @@ export class MinoristaService {
     return dataReturned;
   }
 
+  /* DEPRECATED
+    Descripcion: Este metodo no lo usaremos porque convierte en automatico al usuario en minorista
+    Se van a implementar 2 nuevos metodos
+      -> para guardar la solicitud
+      -> para que el admin acepte la solicitud y entonces el usuario sea convertido a minorista
+   */
   async createMinorista(id: string, minoristaDto: MinoristaDto) {
     try {
       const user = await this.userRepository.findOne({ where: { id } });
@@ -84,4 +90,8 @@ export class MinoristaService {
   async getMinorista(id: string) {
     return await this.minoristaRepository.findOne({ where: { id } });
   }
+
+  async acceptSolicitudMinorista(id: string) {}
+
+  async createSolicitudMinorista(id: string) {}
 }

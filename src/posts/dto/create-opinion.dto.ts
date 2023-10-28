@@ -1,9 +1,11 @@
-import { IsArray, IsString } from 'class-validator';
+import { IsArray, IsOptional, IsString } from 'class-validator';
+import { Image } from '../entities/image.entity';
 
 export class CreateOpinionDto {
   @IsString()
   content: string;
 
   @IsArray()
-  photos: string;
+  @IsOptional()
+  photos?: Image[];
 }

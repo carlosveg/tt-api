@@ -5,7 +5,7 @@ import { AuthModule } from '../auth/auth.module';
 import { S3Service } from '../s3/s3.service';
 import { User, UserMinorista, UserScore } from './entities';
 import { FavoritesService, MinoristaService, UsersService } from './services';
-import { UsersController } from './users.controller';
+import { UsersController } from './controllers/users.controller';
 
 @Module({
   controllers: [UsersController],

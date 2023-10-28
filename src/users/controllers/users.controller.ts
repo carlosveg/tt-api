@@ -11,12 +11,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Auth } from '../auth/decorators';
-import { CreateUserDto, UpdateUserDto } from './dto';
-import { MinoristaDto } from './dto/minorista.dto';
-import { UsersService } from './services';
-import { FavoritesService } from './services/favorites.service';
-import { MinoristaService } from './services/minorista.service';
+import { Auth } from '../../auth/decorators';
+import { CreateUserDto, UpdateUserDto } from '../dto';
+import { MinoristaDto } from '../dto/minorista.dto';
+import { UsersService } from '../services';
+import { FavoritesService } from '../services/favorites.service';
+import { MinoristaService } from '../services/minorista.service';
 
 @Controller('users')
 export class UsersController {
@@ -90,6 +90,7 @@ export class UsersController {
     return this.favoritesService.removeFavorite(id, idFav);
   }
 
+  // DEPRECATED
   @Post('create/minorista/:id')
   // @Auth()
   createMinorista(
@@ -97,5 +98,15 @@ export class UsersController {
     @Body() minoristaDto: MinoristaDto,
   ) {
     return this.minoristaService.createMinorista(id, minoristaDto);
+  }
+
+  @Post('accept-solicitud-minorista/:idSolicitud')
+  createSolicitudMinorista(@Param('id', ParseUUIDPipe) id: string) {
+    return this.minoristaService.createSolicitudMinorista(id);
+  }
+
+  @Post('accept-solicitud-minorista/:id')
+  acceptSolicitudMinorista(@Param('id', ParseUUIDPipe) id: string) {
+    return this.minoristaService.acceptSolicitudMinorista(id);
   }
 }
