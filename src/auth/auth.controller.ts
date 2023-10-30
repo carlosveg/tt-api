@@ -33,6 +33,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @UseGuards(AuthGuard())
   login(@Body() loginUserDto: LoginUserDto) {
     return this.authService.login(loginUserDto);
   }

@@ -99,14 +99,4 @@ export class UsersController {
   ) {
     return this.minoristaService.createMinorista(id, minoristaDto);
   }
-
-  @Post('accept-solicitud-minorista/:idSolicitud')
-  createSolicitudMinorista(@Param('id', ParseUUIDPipe) id: string) {
-    return this.minoristaService.createSolicitudMinorista(id);
-  }
-
-  @Post('accept-solicitud-minorista/:id')
-  acceptSolicitudMinorista(@Param('id', ParseUUIDPipe) id: string) {
-    return this.minoristaService.acceptSolicitudMinorista(id);
-  }
 }

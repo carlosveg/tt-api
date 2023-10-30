@@ -19,6 +19,9 @@ export class UserMinorista {
   @Column({ type: 'enum', enum: catalogEnum })
   ocupacion: catalogEnum;
 
+  @Column('text')
+  description: string;
+
   @Column('text', { nullable: false })
   latitud: string;
 

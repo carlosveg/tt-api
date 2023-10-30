@@ -90,8 +90,4 @@ export class MinoristaService {
   async getMinorista(id: string) {
     return await this.minoristaRepository.findOne({ where: { id } });
   }
-
-  async acceptSolicitudMinorista(id: string) {}
-
-  async createSolicitudMinorista(id: string) {}
 }
