@@ -32,14 +32,26 @@ export class MinoristaService {
     const dataReturned = users.map((u) => {
       const { user, ...rest } = u;
 
+      delete user.updatedAt;
+      delete user.solicitudes;
+      delete user.curp;
+      delete user.favNotifications;
+      delete user.favoritedBy;
+      delete user.password;
+
       return {
-        email: user.email,
-        fullName: user.fullName,
-        ...rest,
-        posts: rest.posts.map((post) => {
-          delete post.updatedAt;
-          return post;
-        }),
+        // id: user.id,
+        // email: user.email,
+        // fullName: user.fullName,
+        // userType: user.userType,
+        ...user,
+        minorista: {
+          ...rest,
+          posts: rest.posts.map((post) => {
+            delete post.updatedAt;
+            return post;
+          }),
+        },
       };
     });
 
@@ -88,6 +100,13 @@ export class MinoristaService {
   }
 
   async getMinorista(id: string) {
-    return await this.minoristaRepository.findOne({ where: { id } });
+    const minorista = await this.minoristaRepository.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+
+    const { user, ...rest } = minorista;
+
+    return { minorista: rest, ...user };
   }
 }
