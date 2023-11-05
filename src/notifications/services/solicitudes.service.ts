@@ -56,6 +56,7 @@ export class SolicitudesService {
     try {
       const solicitud = this.solicitudesRepository.create({
         ...createSolicitudDto,
+        type: 0,
         user,
       });
 
@@ -158,6 +159,7 @@ export class SolicitudesService {
 
     solicitud.title = 'Reactivación de cuenta';
     solicitud.message = `El usuario ${userDB.fullName} ha solicitado la reactivación de su cuenta`;
+    solicitud.type = 1;
 
     await this.solicitudesRepository.save(solicitud);
 
