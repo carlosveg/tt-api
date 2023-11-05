@@ -33,13 +33,13 @@ export class AuthController {
   }
 
   @Post('login')
-  @Auth()
   login(@Body() loginUserDto: LoginUserDto) {
     return this.authService.login(loginUserDto);
   }
 
   @Get('private')
-  @UseGuards(AuthGuard())
+  // @UseGuards(AuthGuard())
+  @Auth(ValidRoles.MINORISTA)
   testPrivateRoute(
     @Req() request: Express.Request,
     @GetUser() user: User,

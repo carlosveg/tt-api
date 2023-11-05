@@ -77,6 +77,11 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException('Not valid credentials');
 
+    if (!user.isActive)
+      throw new UnauthorizedException(
+        'La cuenta es inactiva, solicite reactivación de cuenta',
+      );
+
     if (!bcrypt.compareSync(password, user.password))
       throw new UnauthorizedException('Not valid credentials');
 
