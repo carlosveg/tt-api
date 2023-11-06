@@ -32,7 +32,7 @@ export class SolicitudesService {
   /* 
   Para crear una solicitud 
    */
-  async create(id: string, createSolicitudDto: CreateSolicitudDto) {
+  async convertToMinorista(id: string, createSolicitudDto: CreateSolicitudDto) {
     const user = await this.userService.findOne(id);
 
     if (!user)

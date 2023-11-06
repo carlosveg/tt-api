@@ -15,11 +15,11 @@ export class SolicitudesController {
   constructor(private readonly solicitudesService: SolicitudesService) {}
 
   @Post('/create/:id')
-  create(
+  convertToMinorista(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() createSolicitudDto: CreateSolicitudDto,
   ) {
-    return this.solicitudesService.create(id, createSolicitudDto);
+    return this.solicitudesService.convertToMinorista(id, createSolicitudDto);
   }
 
   @Get()

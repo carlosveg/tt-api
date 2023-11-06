@@ -12,7 +12,7 @@ import {
 import { ValidRoles } from '../../auth/interfaces/valid-roles';
 import { Opinion } from '../../posts/entities/opinion.entity';
 import { UserMinorista } from './user-minorista.entity';
-import { UserScore } from './user-score.entity';
+import { UserScores } from './user-score.entity';
 import { FavNotification, Solicitudes } from '../../notifications/entities';
 
 /* 
@@ -76,8 +76,21 @@ export class User {
   })
   minorista: UserMinorista;
 
-  @OneToMany(() => UserScore, (score) => score.userOrigen, { cascade: true })
-  score: UserScore[];
+  /* 
+    Aquí se va a almacenar el cálculo del promedio de las calificaciones recibidas
+   */
+  @Column('numeric', { default: 0 })
+  score: number;
+
+  @OneToMany(() => UserScores, (score) => score.usuarioCalificador, {
+    cascade: true,
+  })
+  calificacionesOtorgadas: UserScores[];
+
+  @OneToMany(() => UserScores, (score) => score.usuarioCalificado, {
+    cascade: true,
+  })
+  calificacionesRecibidas: UserScores[];
 
   @OneToMany(() => Opinion, (op) => op.user, { cascade: true })
   opinions: string[];
@@ -85,14 +98,18 @@ export class User {
   /* 
     Relaciones para manejar el proceso de los favoritos
    */
-  @ManyToMany(() => User, (user) => user.favoritedBy)
+  @ManyToMany(() => User, (user) => user.favoritedBy, {
+    onDelete: 'CASCADE',
+  })
   @JoinTable()
   favorites: User[];
 
-  @ManyToMany(() => User, (user) => user.favorites)
+  @ManyToMany(() => User, (user) => user.favorites, {
+    onDelete: 'CASCADE',
+  })
   favoritedBy: User[];
 
-  @OneToMany(() => UserScore, (score) => score.userOrigen, { cascade: true })
+  @OneToMany(() => Solicitudes, (sol) => sol.user, { cascade: true })
   solicitudes: Solicitudes[];
 
   /* implementar la relacion con opinions */
