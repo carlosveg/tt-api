@@ -93,6 +93,14 @@ export class UsersController {
     return this.favoritesService.removeFavorite(id, idFav);
   }
 
+  @Post('validateFavorite/:idUser/:idFavorite')
+  validateFavorite(
+    @Param('idUser', ParseUUIDPipe) idUser: string,
+    @Param('idFavorite', ParseUUIDPipe) idFavorite: string,
+  ) {
+    return this.favoritesService.isFavorite(idUser, idFavorite);
+  }
+
   // DEPRECATED
   @Post('create/minorista/:id')
   // @Auth()
