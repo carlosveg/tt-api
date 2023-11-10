@@ -32,17 +32,17 @@ export class ScoresService {
       scoreDto.idUsuarioCalificador,
     );
 
-    const isAlreadyMadeScore = await this.userScoreRepository.findOne({
-      where: {
-        usuarioCalificador: { id: scoreDto.idUsuarioCalificador },
-        usuarioCalificado: { id: scoreDto.idUsuarioCalificado },
-      },
-    });
+    // const isAlreadyMadeScore = await this.userScoreRepository.findOne({
+    //   where: {
+    //     usuarioCalificador: { id: scoreDto.idUsuarioCalificador },
+    //     usuarioCalificado: { id: scoreDto.idUsuarioCalificado },
+    //   },
+    // });
 
-    if (isAlreadyMadeScore)
-      throw new BadRequestException(
-        `El usuario ${usuarioCalificador.fullName} ya ha calificado al usuario ${usuarioCalificado.fullName}`,
-      );
+    // if (isAlreadyMadeScore)
+    //   throw new BadRequestException(
+    //     `El usuario ${usuarioCalificador.fullName} ya ha calificado al usuario ${usuarioCalificado.fullName}`,
+    //   );
 
     const score = this.userScoreRepository.create({
       score: scoreDto.score,
@@ -79,7 +79,8 @@ export class ScoresService {
       (acc, score) => acc + +score.score,
       0,
     );
+    const newScore = sumaCalificaciones / calificaciones.length;
 
-    return sumaCalificaciones / calificaciones.length;
+    return Math.round(newScore * 10) / 10;
   }
 }
