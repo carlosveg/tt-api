@@ -30,6 +30,8 @@ export class Opinion {
   })
   post: Post;
 
-  @ManyToOne(() => User, (user) => user.opinions)
+  @ManyToOne(() => User, (user) => user.opinions, {
+    onDelete: 'CASCADE',
+  })
   user: User;
 }

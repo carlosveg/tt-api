@@ -72,10 +72,16 @@ export class AuthService {
 
     const user = await this.userRepository.findOne({
       where: { email },
-      select: { email: true, password: true, id: true },
+      select: { email: true, password: true, id: true, isActive: true },
     });
 
     if (!user) throw new UnauthorizedException('Not valid credentials');
+
+    if (!user.isActive)
+      throw new ConflictException({
+        userId: user.id,
+        message: 'Cuenta inactiva, solicite reactivacion',
+      });
 
     if (!bcrypt.compareSync(password, user.password))
       throw new UnauthorizedException('Not valid credentials');

@@ -8,9 +8,9 @@ import { Image } from './entities/image.entity';
 import { Opinion } from './entities/opinion.entity';
 import { Post } from './entities/post.entity';
 import { OpinionsController } from './opinions.controller';
-import { OpinionsService } from './opinions.service';
+import { OpinionsService } from './services/opinions.service';
 import { PostsController } from './posts.controller';
-import { PostsService } from './posts.service';
+import { PostsService } from './services/posts.service';
 
 @Module({
   controllers: [PostsController, OpinionsController],

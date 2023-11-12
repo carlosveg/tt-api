@@ -38,7 +38,8 @@ export class AuthController {
   }
 
   @Get('private')
-  @UseGuards(AuthGuard())
+  // @UseGuards(AuthGuard())
+  @Auth(ValidRoles.MINORISTA)
   testPrivateRoute(
     @Req() request: Express.Request,
     @GetUser() user: User,

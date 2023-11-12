@@ -91,4 +91,11 @@ export class FavoritesService {
       message: 'User favorite was deleted successfully',
     };
   }
+
+  async isFavorite(idUser: string, idFavorite: string) {
+    const favorites = await this.getFavoritesByUser(idUser);
+    const ids = favorites.map((fav) => fav.id);
+
+    return ids.includes(idFavorite);
+  }
 }

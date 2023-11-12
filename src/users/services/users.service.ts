@@ -93,6 +93,10 @@ export class UsersService {
     /* QueryBuilder */
     // const queryBuilder = this.userRepository.createQueryBuilder();
     // user = await queryBuilder.where(`id = :id`, { id: id }).getOne();
+    delete user.curp;
+    delete user.updatedAt;
+    delete user.isActive;
+    delete user.password;
 
     return user;
   }

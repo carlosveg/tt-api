@@ -31,7 +31,9 @@ export class Post {
   @OneToMany(() => Image, (image) => image.post)
   images: Image[];
 
-  @ManyToOne(() => UserMinorista, (user) => user.posts)
+  @ManyToOne(() => UserMinorista, (user) => user.posts, {
+    onDelete: 'CASCADE',
+  })
   user: UserMinorista;
 
   @OneToMany(() => Opinion, (op) => op.post)

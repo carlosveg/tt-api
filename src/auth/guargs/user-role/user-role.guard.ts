@@ -1,14 +1,15 @@
+import { Reflector } from '@nestjs/core';
 import {
-  BadRequestException,
   CanActivate,
   ExecutionContext,
-  ForbiddenException,
   Injectable,
+  BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
-import { META_ROLES } from '../../../auth/decorators/role-protected.decorator';
+import { META_ROLES } from '../../../auth/decorators';
 import { User } from '../../../users/entities';
+import { ValidRoles } from '../../../auth/interfaces/valid-roles';
 
 @Injectable()
 export class UserRoleGuard implements CanActivate {
@@ -27,15 +28,24 @@ export class UserRoleGuard implements CanActivate {
 
     const req = context.switchToHttp().getRequest();
     const user = req.user as User;
-
+    console.log(user);
     if (!user) throw new BadRequestException('User not found');
 
-    if (validRole[0] === user.userType) return true;
+    /* for (const role of user.userType) {
+      if (validRoles.includes(role)) {
+        return true;
+      }
+    } */
 
-    // for (const role of user.curp) {
-    //   if (validRoles.includes(role)) return true;
-    // }
+    console.log(user.userType);
 
-    throw new ForbiddenException(`User ${user.fullName} need a valid role`);
+    if (validRole.includes(user.userType)) {
+      console.log('El usuario es minorista');
+      return true;
+    }
+
+    throw new ForbiddenException(
+      `User ${user.fullName} need a valid role: [${validRole}]`,
+    );
   }
 }

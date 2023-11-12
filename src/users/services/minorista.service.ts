@@ -32,20 +32,38 @@ export class MinoristaService {
     const dataReturned = users.map((u) => {
       const { user, ...rest } = u;
 
+      delete user.updatedAt;
+      delete user.solicitudes;
+      delete user.curp;
+      delete user.favNotifications;
+      delete user.favoritedBy;
+      delete user.password;
+
       return {
-        email: user.email,
-        fullName: user.fullName,
-        ...rest,
-        posts: rest.posts.map((post) => {
-          delete post.updatedAt;
-          return post;
-        }),
+        // id: user.id,
+        // email: user.email,
+        // fullName: user.fullName,
+        // userType: user.userType,
+        ...user,
+        minorista: {
+          ...rest,
+          posts: rest.posts.map((post) => {
+            delete post.updatedAt;
+            return post;
+          }),
+        },
       };
     });
 
     return dataReturned;
   }
 
+  /* DEPRECATED
+    Descripcion: Este metodo no lo usaremos porque convierte en automatico al usuario en minorista
+    Se van a implementar 2 nuevos metodos
+      -> para guardar la solicitud
+      -> para que el admin acepte la solicitud y entonces el usuario sea convertido a minorista
+   */
   async createMinorista(id: string, minoristaDto: MinoristaDto) {
     try {
       const user = await this.userRepository.findOne({ where: { id } });
@@ -82,6 +100,13 @@ export class MinoristaService {
   }
 
   async getMinorista(id: string) {
-    return await this.minoristaRepository.findOne({ where: { id } });
+    const minorista = await this.minoristaRepository.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+
+    const { user, ...rest } = minorista;
+
+    return { minorista: rest, ...user };
   }
 }

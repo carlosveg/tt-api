@@ -7,14 +7,14 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { Image } from '../posts/entities/image.entity';
-import { S3Service } from '../s3/s3.service';
-import { User, UserMinorista } from '../users/entities';
-import { UsersService } from '../users/services/users.service';
-import { CreateOpinionDto } from './dto/create-opinion.dto';
-import { UpdateOpinionDto } from './dto/update-opinion.dto';
-import { Opinion } from './entities/opinion.entity';
-import { Post } from './entities/post.entity';
+import { Image } from '../entities/image.entity';
+import { S3Service } from '../../s3/s3.service';
+import { User, UserMinorista } from '../../users/entities';
+import { UsersService } from '../../users/services/users.service';
+import { CreateOpinionDto } from '../dto/create-opinion.dto';
+import { UpdateOpinionDto } from '../dto/update-opinion.dto';
+import { Opinion } from '../entities/opinion.entity';
+import { Post } from '../entities/post.entity';
 
 @Injectable()
 export class OpinionsService {

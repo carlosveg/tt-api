@@ -11,23 +11,38 @@ import { SeedModule } from './seed/seed.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { S3Module } from './s3/s3.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
-      ssl: process.env.STAGE === 'prod',
+      ssl: process.env.STAGE === 'prod' ? true : false,
       extra: {
-        ssl:
-          process.env.STAGE === 'prod' ? { rejectUnauthorized: false } : null,
+        ssl: process.env.STAGE === 'prod' ? true : false,
       },
 
       type: 'postgres',
-      host: process.env.DB_HOST,
-      port: +process.env.DB_PORT,
-      database: process.env.DB_NAME,
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
+      host:
+        process.env.STAGE === 'prod'
+          ? process.env.DB_HOST
+          : process.env.DB_HOST_DEV,
+      port:
+        process.env.STAGE === 'prod'
+          ? +process.env.DB_PORT
+          : +process.env.DB_PORT_DEV,
+      database:
+        process.env.STAGE === 'prod'
+          ? process.env.DB_NAME
+          : process.env.DB_NAME_DEV,
+      username:
+        process.env.STAGE === 'prod'
+          ? process.env.DB_USERNAME
+          : process.env.DB_USERNAME_DEV,
+      password:
+        process.env.STAGE === 'prod'
+          ? process.env.DB_PASSWORD
+          : process.env.DB_PASSWORD_DEV,
       autoLoadEntities: true,
       synchronize: true,
     }),
@@ -40,6 +55,7 @@ import { S3Module } from './s3/s3.module';
     FilesModule,
     AuthModule,
     S3Module,
+    NotificationsModule,
   ],
 })
 export class AppModule {}

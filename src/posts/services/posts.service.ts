@@ -7,14 +7,14 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { Image } from '../posts/entities/image.entity';
-import { S3Service } from '../s3/s3.service';
-import { UserMinorista } from '../users/entities';
-import { UsersService } from '../users/services/users.service';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
-import { Opinion } from './entities/opinion.entity';
-import { Post } from './entities/post.entity';
+import { Image } from '../entities/image.entity';
+import { S3Service } from '../../s3/s3.service';
+import { UserMinorista } from '../../users/entities';
+import { UsersService } from '../../users/services/users.service';
+import { CreatePostDto } from '../dto/create-post.dto';
+import { UpdatePostDto } from '../dto/update-post.dto';
+import { Opinion } from '../entities/opinion.entity';
+import { Post } from '../entities/post.entity';
 
 @Injectable()
 export class PostsService {
@@ -89,6 +89,14 @@ export class PostsService {
 
     if (!post) throw new NotFoundException();
 
+    delete post.updatedAt;
+
+    post.images.forEach((image) => {
+      delete image.id;
+      delete image.createdAt;
+      delete image.updatedAt;
+    });
+
     return post;
   }
 
@@ -97,6 +105,8 @@ export class PostsService {
       relations: { images: true, user: true },
       order: { createdAt: 'DESC' },
     });
+
+    posts.forEach((post) => delete post.updatedAt);
 
     return posts.map((post) => {
       const { images, ...rest } = post;
