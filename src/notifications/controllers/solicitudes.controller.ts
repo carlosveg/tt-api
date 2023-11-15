@@ -14,12 +14,17 @@ import { SolicitudesService } from '../services/solicitudes.service';
 export class SolicitudesController {
   constructor(private readonly solicitudesService: SolicitudesService) {}
 
-  @Post('/create/:id')
-  convertToMinorista(
+  @Post('/requestMinorista/:id')
+  requestMinorista(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() createSolicitudDto: CreateSolicitudDto,
   ) {
-    return this.solicitudesService.convertToMinorista(id, createSolicitudDto);
+    return this.solicitudesService.requestMinorista(id, createSolicitudDto);
+  }
+
+  @Post('/solicitarReactivacion/:id')
+  solicitarReactivacionCuenta(@Param('id') id: string) {
+    return this.solicitudesService.solicitarReactivacionCuenta(id);
   }
 
   @Get()
@@ -37,24 +42,39 @@ export class SolicitudesController {
     return this.solicitudesService.remove(id);
   }
 
-  @Post('/accept/:idSolicitud/:idUser')
-  acceptSolicitud(
+  /* 
+    Sección para aceptar o rechazar solicitudes
+   */
+
+  @Post('/acceptMinorista/:idSolicitud/:idUser')
+  acceptMinorista(
     @Param('idSolicitud') idSolicitud: string,
     @Param('idUser') idUser: string,
   ) {
-    return this.solicitudesService.acceptSolicitud(idSolicitud, idUser);
+    return this.solicitudesService.convertMinorista(idSolicitud, idUser);
   }
 
-  @Post('/solicitarReactivacion/:id')
-  solicitarReactivacionCuenta(@Param('id') id: string) {
-    return this.solicitudesService.solicitarReactivacionCuenta(id);
+  @Post('/rejectMinorista/:idSolicitud/:idUser')
+  rejectMinorista(
+    @Param('idSolicitud') idSolicitud: string,
+    @Param('idUser') idUser: string,
+  ) {
+    return this.solicitudesService.rejectSolicitud(idSolicitud, idUser);
   }
 
-  @Post('/reactivate/:idSolicitud/:idUser')
-  reactivateAccount(
+  @Post('/acceptReactivateAccount/:idSolicitud/:idUser')
+  acceptReactivateAccount(
     @Param('idSolicitud') idSolicitud: string,
     @Param('idUser') idUser: string,
   ) {
     return this.solicitudesService.reactivarCuenta(idSolicitud, idUser);
+  }
+
+  @Post('/rejectReactivateAccount/:idSolicitud/:idUser')
+  rejectReactivateAccount(
+    @Param('idSolicitud') idSolicitud: string,
+    @Param('idUser') idUser: string,
+  ) {
+    return this.solicitudesService.rechazoReactivarCuenta(idSolicitud, idUser);
   }
 }

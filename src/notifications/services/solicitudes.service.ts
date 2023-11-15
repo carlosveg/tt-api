@@ -15,6 +15,13 @@ import { ValidRoles } from '../../auth/interfaces/valid-roles';
 import { UserMinorista } from '../../users/entities/user-minorista.entity';
 import { User } from '../../users/entities';
 import { MinoristaDto } from '../../users/dto';
+import { EmailService } from '../../email/email.service';
+import {
+  minoristaAccept,
+  minoristaReject,
+  reactivateAccept,
+  reactivateReject,
+} from '../messages/messages';
 
 @Injectable()
 export class SolicitudesService {
@@ -27,12 +34,13 @@ export class SolicitudesService {
     private readonly userRepository: Repository<User>,
     private readonly minoristaService: MinoristaService,
     private readonly userService: UsersService,
+    private readonly emailService: EmailService,
   ) {}
 
   /* 
   Para crear una solicitud 
    */
-  async convertToMinorista(id: string, createSolicitudDto: CreateSolicitudDto) {
+  async requestMinorista(id: string, createSolicitudDto: CreateSolicitudDto) {
     const user = await this.userService.findOne(id);
 
     if (!user)
@@ -120,11 +128,12 @@ export class SolicitudesService {
     };
   }
 
-  async acceptSolicitud(idSolicitud: string, idUser: string) {
+  async convertMinorista(idSolicitud: string, idUser: string) {
     await this.userService.findOne(idUser);
     const solicitudDB = await this.solicitudesRepository.findOneBy({
       id: idSolicitud,
     });
+    const userDB = await this.userRepository.findOneBy({ id: idUser });
 
     if (!solicitudDB)
       throw new NotFoundException(
@@ -132,6 +141,7 @@ export class SolicitudesService {
       );
 
     solicitudDB.isRead = true;
+    solicitudDB.isAccepted = true;
 
     const minoristaDto = {
       ocupacion: solicitudDB.ocupacion,
@@ -147,7 +157,42 @@ export class SolicitudesService {
       minoristaDto as MinoristaDto,
     );
 
+    this.emailService.sendEmail(
+      userDB.fullName,
+      [userDB.email],
+      minoristaAccept,
+    );
+
     return itsOK;
+  }
+
+  async rejectSolicitud(idSolicitud: string, idUser: string) {
+    await this.userService.findOne(idUser);
+    const solicitudDB = await this.solicitudesRepository.findOneBy({
+      id: idSolicitud,
+    });
+    const userDB = await this.userRepository.findOneBy({ id: idUser });
+
+    if (!solicitudDB)
+      throw new NotFoundException(
+        `No se encontró la solicitud con id [${idSolicitud}]`,
+      );
+
+    solicitudDB.isRead = true;
+    solicitudDB.isAccepted = false;
+
+    await this.solicitudesRepository.save(solicitudDB);
+
+    this.emailService.sendEmail(
+      userDB.fullName,
+      [userDB.email],
+      minoristaReject,
+    );
+
+    return {
+      status: HttpStatus.OK,
+      message: 'Solicitud de minorista rechazada con exito',
+    };
   }
 
   async solicitarReactivacionCuenta(id: string) {
@@ -182,15 +227,50 @@ export class SolicitudesService {
       );
 
     solicitudDB.isRead = true;
+    solicitudDB.isAccepted = true;
     await this.solicitudesRepository.save(solicitudDB);
 
     // Reactivamos la cuenta
     userDB.isActive = true;
     await this.userRepository.save(userDB);
 
+    this.emailService.sendEmail(
+      userDB.fullName,
+      [userDB.email],
+      reactivateAccept,
+    );
+
     return {
-      status: HttpStatus.ACCEPTED,
+      status: HttpStatus.OK,
       message: 'La cuenta fue reactivada con exito',
+    };
+  }
+
+  async rechazoReactivarCuenta(idSolicitud: string, idUser: string) {
+    const userDB = await this.userRepository.findOneBy({ id: idUser });
+
+    const solicitudDB = await this.solicitudesRepository.findOneBy({
+      id: idSolicitud,
+    });
+
+    if (!solicitudDB)
+      throw new NotFoundException(
+        `No se encontró la solicitud con id [${idSolicitud}]`,
+      );
+
+    solicitudDB.isRead = true;
+    solicitudDB.isAccepted = false;
+    await this.solicitudesRepository.save(solicitudDB);
+
+    this.emailService.sendEmail(
+      userDB.fullName,
+      [userDB.email],
+      reactivateReject,
+    );
+
+    return {
+      status: HttpStatus.OK,
+      message: 'Solicitud de reactivacion de cuenta rechazada con exito',
     };
   }
 }
