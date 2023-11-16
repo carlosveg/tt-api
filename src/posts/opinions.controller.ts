@@ -21,15 +21,21 @@ import { ValidRoles } from '../auth/interfaces/valid-roles';
 export class OpinionsController {
   constructor(private readonly opinionsService: OpinionsService) {}
 
-  @Post('/create/:id')
+  @Post('/create/:idPost/:idUser')
   // @Auth()
   @UseInterceptors(FilesInterceptor('photos'))
   create(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('idPost', ParseUUIDPipe) idPost: string,
+    @Param('idUser', ParseUUIDPipe) idUser: string,
     @Body() createOpinionDto: CreateOpinionDto,
     @UploadedFiles() photos: Express.Multer.File[],
   ) {
-    return this.opinionsService.create(id, createOpinionDto, photos);
+    return this.opinionsService.create(
+      idPost,
+      idUser,
+      createOpinionDto,
+      photos,
+    );
   }
 
   @Get()
