@@ -31,6 +31,9 @@ export class Solicitudes {
   @Column('boolean', { default: false })
   isRead: boolean;
 
+  @Column('boolean', { nullable: true })
+  isAccepted: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 
