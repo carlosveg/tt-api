@@ -1,10 +1,11 @@
 import { PartialType } from '@nestjs/mapped-types';
 import {
-  IsIn,
-  IsNumber,
+  IsBoolean,
+  IsEmail,
   IsOptional,
   IsPhoneNumber,
   IsString,
+  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -12,24 +13,34 @@ import { CreateUserDto } from './create-user.dto';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsString()
-  @MinLength(18)
-  @MaxLength(18)
-  curp?: string;
+  @IsOptional()
+  fullName?: string;
+
   @IsString()
-  name?: string;
-  @IsString()
-  apPat?: string;
-  @IsString()
-  apMat?: string;
-  @IsString()
+  @IsEmail()
+  @IsOptional()
   email?: string;
+
   @IsString()
+  @MinLength(6)
+  @MaxLength(50)
+  @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+    message:
+      'The password must have a Uppercase, lowercase letter and a number',
+  })
+  @IsOptional()
   password?: string;
+
   @IsString()
   @IsPhoneNumber('MX')
-  phone?: string;
-  @IsNumber()
   @IsOptional()
-  @IsIn([0, 1, 2])
-  userType?: number;
+  phone?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+
+  @IsString()
+  @IsOptional()
+  urlImgProfile?: string;
 }

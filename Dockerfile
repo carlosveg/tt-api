@@ -1,8 +1,27 @@
-FROM node:alpine
+FROM node:16-alpine as builder
 
-WORKDIR /tt-retail
-COPY package.json .
-RUN yarn
+ENV NODE_ENV build
 
-COPY . .
-CMD yarn dev
+USER node
+WORKDIR /home/node
+
+COPY package*.json ./
+# RUN yarn
+
+COPY --chown=node:node . .
+RUN npm install --production=false && yarn run build
+
+# ---
+
+FROM node:16-alpine
+
+ENV NODE_ENV production
+
+USER node
+WORKDIR /home/node
+
+COPY --from=builder --chown=node:node /home/node/package*.json ./
+COPY --from=builder --chown=node:node /home/node/node_modules/ ./node_modules/
+COPY --from=builder --chown=node:node /home/node/dist/ ./dist/
+
+CMD ["node", "dist/main"]

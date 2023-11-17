@@ -1,11 +1,19 @@
-import { Post } from 'src/posts/entities/post.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   OneToMany,
-  PrimaryColumn,
+  OneToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
+import { ValidRoles } from '../../auth/interfaces/valid-roles';
+import { Opinion } from '../../posts/entities/opinion.entity';
+import { UserMinorista } from './user-minorista.entity';
+import { UserScores } from './user-score.entity';
+import { FavNotification, Solicitudes } from '../../notifications/entities';
 
 /* 
   En principio tendremos 3 tipos de usuario
@@ -17,56 +25,94 @@ import {
 
 @Entity({ name: 'users' })
 export class User {
-  // @PrimaryGeneratedColumn('uuid')
-  // id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  // @Column('text', { nullable: false, unique: true })
-  @PrimaryColumn('text', { nullable: false, unique: true })
+  // @PrimaryColumn('text', { nullable: false, unique: true })
+  @Column('text', { nullable: false, unique: true, select: false })
   curp: string;
 
   @Column('text', { nullable: false })
-  name: string;
-
-  @Column('text', { nullable: false })
-  apPat: string;
-
-  @Column('text', { nullable: false })
-  apMat: string;
+  fullName: string;
 
   @Column('text', { nullable: false, unique: true })
   email: string;
 
-  @Column('text', { nullable: false })
+  @Column('text', { nullable: false, select: false })
   password: string;
 
   @Column('text', { nullable: false })
   phone: string;
 
-  @Column({ type: 'numeric', default: 0 })
-  userType: number;
+  @Column({
+    type: 'enum',
+    enum: ValidRoles,
+    default: ValidRoles.USER,
+    nullable: false,
+  })
+  userType: ValidRoles;
 
   @Column('boolean', { default: true })
   isActive: boolean;
 
+  @Column('text', {
+    nullable: false,
+    default: 'https://files-tt.s3.amazonaws.com/nobody.jpg',
+  })
+  urlImgProfile: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
   /*
-    A partir de aquí van las columnas que tendrán relaciones
+  A partir de aquí van las columnas que tendrán relaciones
   */
-  @Column('text', { array: true, default: [] })
+  @OneToOne(() => UserMinorista, (um) => um.user, {
+    cascade: true,
+    nullable: true,
+  })
+  minorista: UserMinorista;
+
+  /* 
+    Aquí se va a almacenar el cálculo del promedio de las calificaciones recibidas
+   */
+  @Column('numeric', { default: 0 })
+  score: number;
+
+  @OneToMany(() => UserScores, (score) => score.usuarioCalificador, {
+    cascade: true,
+  })
+  calificacionesOtorgadas: UserScores[];
+
+  @OneToMany(() => UserScores, (score) => score.usuarioCalificado, {
+    cascade: true,
+  })
+  calificacionesRecibidas: UserScores[];
+
+  @OneToMany(() => Opinion, (op) => op.user, { cascade: true })
   opinions: string[];
 
-  @OneToMany(() => Post, (userPost) => userPost.user, { cascade: true })
-  posts: Post[];
+  /* 
+    Relaciones para manejar el proceso de los favoritos
+   */
+  @ManyToMany(() => User, (user) => user.favoritedBy, {
+    onDelete: 'CASCADE',
+  })
+  @JoinTable()
+  favorites: User[];
 
-  /* @BeforeInsert()
-  desmadre() {} */
+  @ManyToMany(() => User, (user) => user.favorites, {
+    onDelete: 'CASCADE',
+  })
+  favoritedBy: User[];
 
-  /*
-    Aquí estarán las validaciones para que ciertos datos cumplan con el
-    cierto formato, tales como:
-      - curp
-      - email
-      - phone
-  */
-  /* @BeforeUpdate()
-  desmadre() {} */
+  @OneToMany(() => Solicitudes, (sol) => sol.user, { cascade: true })
+  solicitudes: Solicitudes[];
+
+  /* implementar la relacion con opinions */
+  @OneToMany(() => Opinion, (op) => op.user, { cascade: true })
+  favNotifications: FavNotification[];
 }
