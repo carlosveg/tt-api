@@ -11,15 +11,18 @@ import {
   UsersService,
 } from './services';
 import { UsersController } from './controllers/users.controller';
+import { CatalogosController } from './controllers/catalogos.controller';
+import { CatalogoService } from './services/catalogos.service';
 
 @Module({
-  controllers: [UsersController],
+  controllers: [UsersController, CatalogosController],
   providers: [
     UsersService,
     S3Service,
     MinoristaService,
     FavoritesService,
     ScoresService,
+    CatalogoService,
   ],
   imports: [
     TypeOrmModule.forFeature([User, UserScores, UserMinorista]),

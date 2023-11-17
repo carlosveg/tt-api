@@ -24,7 +24,7 @@ export class CatalogoService {
     const isInEnum = Object.values(catalogEnum).includes(catalogo);
     return await this.minoristaRepository.find({
       where: { ocupacion: catalogo },
-      relations: { user },
+      relations: { user: true },
     });
   }
 }
