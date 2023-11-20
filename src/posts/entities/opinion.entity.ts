@@ -22,7 +22,7 @@ export class Opinion {
   createdAt: Date;
 
   /* Relations */
-  @OneToMany(() => Image, (img) => img.opinion)
+  @OneToMany(() => Image, (img) => img.opinion, { eager: true })
   images: Image[];
 
   @ManyToOne(() => Post, (post) => post.opinions, {
@@ -32,6 +32,7 @@ export class Opinion {
 
   @ManyToOne(() => User, (user) => user.opinions, {
     onDelete: 'CASCADE',
+    eager: true,
   })
   user: User;
 }
