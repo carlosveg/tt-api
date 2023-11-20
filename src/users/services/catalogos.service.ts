@@ -1,15 +1,8 @@
-import {
-  BadRequestException,
-  HttpStatus,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../entities/user.entity';
-import { UserMinorista } from '../entities';
 import { catalogEnum } from '../../common/enum';
+import { UserMinorista } from '../entities';
 
 @Injectable()
 export class CatalogoService {
@@ -22,6 +15,10 @@ export class CatalogoService {
 
   async getCatalogo(catalogo: catalogEnum) {
     const isInEnum = Object.values(catalogEnum).includes(catalogo);
+
+    if (!isInEnum)
+      throw new BadRequestException(`No existe el catalogo '${catalogo}'`);
+
     return await this.minoristaRepository.find({
       where: { ocupacion: catalogo },
       relations: { user: true },
