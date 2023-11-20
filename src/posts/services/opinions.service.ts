@@ -56,11 +56,9 @@ export class OpinionsService {
     // Se busca al usuario que hizo la opinion por su id para asociarlo a la opinion
     const user = await this.userRepository.findOne({ where: { id: idUser } });
 
-    if (!user) throw new NotFoundException('User minorista not found');
+    if (!user) throw new NotFoundException('User not found');
 
     // user = user.user;
-
-    console.log(user);
 
     try {
       const images = [];
@@ -129,10 +127,17 @@ export class OpinionsService {
   async findAllByPost(id: string) {
     const opinions = await this.opinionRepository.find({
       where: { post: { id } },
-      relations: { images: true },
     });
 
-    return opinions;
+    return opinions.map((op) => {
+      const { user, images, ...rest } = op;
+
+      return {
+        ...rest,
+        user: { fullName: user.fullName },
+        images: images.map((img) => img.url),
+      };
+    });
   }
 
   async update(
