@@ -98,4 +98,13 @@ export class FavoritesService {
 
     return ids.includes(idFavorite);
   }
+
+  async getEmailsForSendNotification(idUser: string) {
+    const { favoritedBy } = await this.userRepository.findOne({
+      where: { id: idUser },
+      relations: { favoritedBy: true },
+    });
+
+    return favoritedBy.map((user) => user.email);
+  }
 }

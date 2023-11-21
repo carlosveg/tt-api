@@ -40,10 +40,6 @@ export class PostsService {
     photos: Express.Multer.File[],
   ) {
     try {
-      /*
-        Buscamos que el curp que manden en el Body esté registrado
-        para asociarlo al post
-      */
       const user = await this.userMinoristaRepository.findOne({
         where: { id },
       });
@@ -68,6 +64,10 @@ export class PostsService {
         user,
         images,
       });
+
+      /**
+       * Aquí se va a agregar el envio de correo para los que hayan agregado al usuario como favorito
+       */
 
       await this.postRepository.save(post);
 
