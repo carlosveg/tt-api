@@ -15,6 +15,7 @@ import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { Opinion } from '../entities/opinion.entity';
 import { Post } from '../entities/post.entity';
+import { catalogEnum } from '../../common/enum';
 
 @Injectable()
 export class PostsService {
@@ -192,5 +193,20 @@ export class PostsService {
     } catch (error) {
       this.logger.error(error);
     }
+  }
+
+  async getCatalogo(ocupacion: catalogEnum) {
+    const posts = await this.postRepository.find({
+      relations: { images: true, user: true },
+      where: { user: { ocupacion } },
+    });
+
+    posts.forEach((post) => delete post.updatedAt);
+
+    return posts.map((post) => {
+      const { images, ...rest } = post;
+
+      return { ...rest, images: images.map((image) => image.url) };
+    });
   }
 }
