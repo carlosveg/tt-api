@@ -28,7 +28,7 @@ export class Post {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => Image, (image) => image.post)
+  @OneToMany(() => Image, (image) => image.post, { eager: true })
   images: Image[];
 
   @ManyToOne(() => UserMinorista, (user) => user.posts, {

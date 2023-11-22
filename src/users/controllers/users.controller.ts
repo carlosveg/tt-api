@@ -101,6 +101,15 @@ export class UsersController {
     return this.favoritesService.isFavorite(idUser, idFavorite);
   }
 
+  /**
+   * Endpoint de prueba para verificar que el método getEmailsForSendNotification funcione correctamente
+   */
+  @Get('/email/:id')
+  // @Auth()
+  test(@Param('id', ParseUUIDPipe) id: string) {
+    return this.favoritesService.getEmailsForSendNotification(id);
+  }
+
   // DEPRECATED
   @Post('create/minorista/:id')
   // @Auth()
