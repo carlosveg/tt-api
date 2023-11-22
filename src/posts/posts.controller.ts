@@ -17,6 +17,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { PostsService } from './services/posts.service';
 import { Auth } from '../auth/decorators';
 import { ValidRoles } from '../auth/interfaces/valid-roles';
+import { catalogEnum } from '../common/enum';
 
 @Controller('posts')
 export class PostsController {
@@ -63,5 +64,10 @@ export class PostsController {
   // @Auth(ValidRoles.MINORISTA)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.postsService.remove(id);
+  }
+
+  @Get('/catalogo/:catalogo')
+  getCatalogo(@Param('catalogo') catalogo: catalogEnum) {
+    return this.postsService.getCatalogo(catalogo);
   }
 }
