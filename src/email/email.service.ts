@@ -1,18 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { createTransport } from 'nodemailer';
+import { Transport, createTransport } from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
-import { template } from './template';
+import { template } from './templates/template';
+import { templateContratacion } from './templates/contratacion';
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
+  private readonly transporter;
 
-  constructor(private readonly configService: ConfigService) {}
-
-  async sendEmail(userName: string, to: string[], content: string) {
-    this.logger.log(`Iniciando envío de email hacía ${to}`);
-
-    const transporter = createTransport({
+  constructor(private readonly configService: ConfigService) {
+    this.transporter = createTransport({
       service: 'gmail',
       host: 'smtp.gmail.com',
       port: 587,
@@ -22,6 +20,11 @@ export class EmailService {
         pass: this.configService.get<string>('KEY_EMAIL'),
       },
     });
+  }
+
+  async sendEmail(userName: string, to: string[], content: string) {
+    this.logger.log(`[SOLICITUD] Iniciando envío de email hacía ${to}`);
+
     const options = {
       from: `TT admin <${this.configService.get<string>('EMAIL_TT')},>`, // sender address
       to, // receiver email
@@ -31,12 +34,38 @@ export class EmailService {
     };
 
     try {
-      const info = await transporter.sendMail(options);
+      const info = await this.transporter.sendMail(options);
       console.log(info);
-      this.logger.log(`Envío de email exitoso`);
+      this.logger.log(`[SOLICITUD] Envío de email exitoso`);
     } catch (error) {
       console.log(error);
-      this.logger.error(`Ocurrio un error al enviar el email hacía ${to}`);
+      this.logger.error(
+        `[SOLICITUD] Ocurrio un error al enviar el email hacía ${to}`,
+      );
+    }
+  }
+
+  async sendEmailContratacion(from: string, to: string[], content: string) {
+    this.logger.log(`[CONTRATACION] Iniciando envío de email hacía ${to}`);
+
+    const options = {
+      from: `TT admin <${this.configService.get<string>('EMAIL_TT')},>`, // sender address
+      cc: from,
+      to, // receiver email
+      subject: 'Solicitud de contratación', // Subject line
+      // text: 'Envio de prueba',
+      html: templateContratacion(content + `<p>Contacto: ${from}.</p>`),
+    };
+
+    try {
+      const info = await this.transporter.sendMail(options);
+      console.log(info);
+      this.logger.log(`[CONTRATACION] Envío de email exitoso`);
+    } catch (error) {
+      console.log(error);
+      this.logger.error(
+        `[CONTRATACION] Ocurrio un error al enviar el email hacía ${to}`,
+      );
     }
   }
 }
