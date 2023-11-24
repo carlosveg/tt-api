@@ -4,6 +4,7 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -14,6 +15,7 @@ import { Opinion } from '../../posts/entities/opinion.entity';
 import { UserMinorista } from './user-minorista.entity';
 import { UserScores } from './user-score.entity';
 import { FavNotification, Solicitudes } from '../../notifications/entities';
+import { Contrataciones } from './contratacion.entity';
 
 /* 
   En principio tendremos 3 tipos de usuario
@@ -115,4 +117,7 @@ export class User {
   /* implementar la relacion con opinions */
   @OneToMany(() => Opinion, (op) => op.user, { cascade: true })
   favNotifications: FavNotification[];
+
+  @OneToMany(() => Contrataciones, (c) => c.usuario, { eager: true })
+  contrataciones: Contrataciones[];
 }

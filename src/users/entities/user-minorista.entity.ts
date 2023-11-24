@@ -2,6 +2,7 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryColumn,
@@ -10,6 +11,7 @@ import {
 import { User } from '.';
 import { Post } from '../../posts/entities/post.entity';
 import { catalogEnum } from 'src/common/enum';
+import { Contrataciones } from './contratacion.entity';
 
 @Entity('user_minorista')
 export class UserMinorista {
@@ -36,4 +38,7 @@ export class UserMinorista {
     cascade: true,
   })
   posts?: Post[];
+
+  @OneToMany(() => Contrataciones, (c) => c.usuario)
+  contrataciones: Contrataciones[];
 }
