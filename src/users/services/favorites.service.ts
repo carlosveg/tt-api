@@ -56,10 +56,8 @@ export class FavoritesService {
         `Favorite user [${favoriteUserId}] not found`,
       );
 
-    if (!user.favorites.some((u) => u.curp === favoriteUserId)) {
-      user.favorites.push(favoriteUser);
-      await this.userRepository.save(user);
-    } else throw new BadRequestException('User is already in your favorites');
+    user.favorites.push(favoriteUser);
+    await this.userRepository.save(user);
 
     return {
       status: HttpStatus.OK,

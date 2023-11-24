@@ -11,18 +11,24 @@ import {
   ScoresService,
   UsersService,
 } from './services';
+import { Contrataciones } from './entities/contratacion.entity';
+import { ContratacionesController } from './controllers/contrataciones.controller';
+import { ContratacionesService } from './services/contrataciones.service';
+import { EmailService } from 'src/email/email.service';
 
 @Module({
-  controllers: [UsersController],
+  controllers: [UsersController, ContratacionesController],
   providers: [
     UsersService,
     S3Service,
     MinoristaService,
     FavoritesService,
     ScoresService,
+    ContratacionesService,
+    EmailService,
   ],
   imports: [
-    TypeOrmModule.forFeature([User, UserScores, UserMinorista]),
+    TypeOrmModule.forFeature([User, UserScores, UserMinorista, Contrataciones]),
     ConfigModule,
     AuthModule,
   ],
