@@ -109,11 +109,18 @@ export class PostsService {
 
     posts.forEach((post) => delete post.updatedAt);
 
-    return posts.map((post) => {
-      const { images, ...rest } = post;
+    const results = posts.map(async (post) => {
+      const { images, user, ...rest } = post;
+      const u = await this.userService.findOne(user.id);
 
-      return { ...rest, images: images.map((image) => image.url) };
+      return {
+        ...rest,
+        user: { ...user, score: u.score },
+        images: images.map((image) => image.url),
+      };
     });
+
+    return await Promise.all(results);
   }
 
   /* debo ver la estructura con que devolvere los datos */
@@ -203,10 +210,17 @@ export class PostsService {
 
     posts.forEach((post) => delete post.updatedAt);
 
-    return posts.map((post) => {
-      const { images, ...rest } = post;
+    const results = posts.map(async (post) => {
+      const { images, user, ...rest } = post;
+      const u = await this.userService.findOne(user.id);
 
-      return { ...rest, images: images.map((image) => image.url) };
+      return {
+        ...rest,
+        user: { ...user, score: u.score },
+        images: images.map((image) => image.url),
+      };
     });
+
+    return await Promise.all(results);
   }
 }
