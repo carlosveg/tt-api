@@ -26,9 +26,9 @@ export class EmailService {
     this.logger.log(`[SOLICITUD] Iniciando envío de email hacía ${to}`);
 
     const options = {
-      from: `TT admin <${this.configService.get<string>('EMAIL_TT')},>`, // sender address
-      to, // receiver email
-      subject: 'Estado de solicitud', // Subject line
+      from: `TT admin <${this.configService.get<string>('EMAIL_TT')},>`,
+      to,
+      subject: 'Estado de solicitud',
       // text: 'Envio de prueba',
       html: template(userName, content),
     };
@@ -49,10 +49,10 @@ export class EmailService {
     this.logger.log(`[CONTRATACION] Iniciando envío de email hacía ${to}`);
 
     const options = {
-      from: `TT admin <${this.configService.get<string>('EMAIL_TT')},>`, // sender address
+      from: `TT admin <${this.configService.get<string>('EMAIL_TT')},>`,
       cc: from,
-      to, // receiver email
-      subject: 'Solicitud de contratación', // Subject line
+      to,
+      subject: 'Solicitud de contratación',
       // text: 'Envio de prueba',
       html: templateContratacion(content + `<p>Contacto: ${from}.</p>`),
     };
@@ -65,6 +65,29 @@ export class EmailService {
       console.log(error);
       this.logger.error(
         `[CONTRATACION] Ocurrio un error al enviar el email hacía ${to}`,
+      );
+    }
+  }
+
+  async sendEmailNotificacion(to: string[], content: string) {
+    this.logger.log(`[NOTIFICACION] Iniciando envío de email hacía ${to}`);
+
+    const options = {
+      from: `TT admin <${this.configService.get<string>('EMAIL_TT')},>`,
+      to,
+      subject: 'Notificación de nueva publicación',
+      // text: 'Envio de prueba',
+      html: templateContratacion(content),
+    };
+
+    try {
+      const info = await this.transporter.sendMail(options);
+      console.log(info);
+      this.logger.log(`[NOTIFICACION] Envío de email exitoso`);
+    } catch (error) {
+      console.log(error);
+      this.logger.error(
+        `[NOTIFICACION] Ocurrio un error al enviar el email hacía ${to}`,
       );
     }
   }

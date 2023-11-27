@@ -16,6 +16,8 @@ import { UpdatePostDto } from '../dto/update-post.dto';
 import { Opinion } from '../entities/opinion.entity';
 import { Post } from '../entities/post.entity';
 import { catalogEnum } from '../../common/enum';
+import { EmailService } from '../../email/email.service';
+import { FavoritesService } from '../../users/services/favorites.service';
 
 @Injectable()
 export class PostsService {
@@ -33,6 +35,8 @@ export class PostsService {
     private readonly userService: UsersService,
     private readonly dataSource: DataSource,
     private readonly s3Service: S3Service,
+    private readonly emailService: EmailService,
+    private readonly favoritesService: FavoritesService,
   ) {}
 
   async create(
@@ -43,6 +47,7 @@ export class PostsService {
     try {
       const user = await this.userMinoristaRepository.findOne({
         where: { id },
+        relations: { user: true },
       });
 
       if (!user) throw new BadRequestException('User not found');
@@ -71,6 +76,20 @@ export class PostsService {
        */
 
       await this.postRepository.save(post);
+
+      const emailsFavorites =
+        await this.favoritesService.getEmailsForSendNotification(user.id);
+
+      await this.emailService.sendEmailNotificacion(
+        emailsFavorites,
+        `
+        <p>El usuario ${
+          user.user.fullName
+        } ha realizado una nueva publicación!!!</p>
+        <p>Título de la publicación <strong>${createPostDto.title.toUpperCase()}</strong></p>
+        <p>Ve a darle un vistazo!!!</p>
+        `,
+      );
 
       return {
         status: HttpStatus.CREATED,
