@@ -96,7 +96,7 @@ export class PostsService {
         message: 'Post was successfuly created',
       };
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(`Ocurrió un eror al crear el post ${error}`);
       throw new NotFoundException(error.message);
     }
   }
@@ -200,7 +200,7 @@ export class PostsService {
       await queryRunner.rollbackTransaction();
       await queryRunner.release();
 
-      this.logger.error(error);
+      this.logger.error(`Ocurrió un error al actualizar el post ${error}`);
     }
   }
 
@@ -217,11 +217,12 @@ export class PostsService {
         message: 'Post was successfuly deleted',
       };
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(`Ocurrió un error al eliminar el post ${error}`);
     }
   }
 
   async getCatalogo(ocupacion: catalogEnum) {
+    this.logger.log(`Obteniendo catalogo ${ocupacion}`);
     const posts = await this.postRepository.find({
       relations: { images: true, user: true },
       where: { user: { ocupacion } },
