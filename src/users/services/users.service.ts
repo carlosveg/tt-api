@@ -83,6 +83,7 @@ export class UsersService {
   }
 
   async findOne(id: string) {
+    this.logger.log(`Obteniendo datos de usuario: ${id}`);
     const user = await this.userRepository.findOneBy({ id });
 
     if (!user) throw new NotFoundException(`User with id [${id}] not found`);
@@ -106,6 +107,7 @@ export class UsersService {
     updateUserDto: UpdateUserDto,
     photo: Express.Multer.File,
   ) {
+    this.logger.log(`Actualizando usuario con id: ${id}`);
     const userDB = await this.findOne(id);
 
     if (updateUserDto.password)
@@ -144,6 +146,7 @@ export class UsersService {
 
       delete user.password;
 
+      this.logger.log('User successfuly updated');
       return { status: HttpStatus.OK, message: 'User successfuly updated' };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -160,12 +163,14 @@ export class UsersService {
       - Reseñas
    */
   async remove(id: string) {
+    this.logger.log(`Dando de baja al usuario con id: ${id}`);
     const user = await this.findOne(id);
 
     if (!user) throw new NotFoundException('User not found');
 
     await this.update(id, { isActive: false }, null);
 
+    this.logger.log('User successfuly unsubscribed');
     return {
       status: HttpStatus.OK,
       message: 'User successfuly unsubscribed',
