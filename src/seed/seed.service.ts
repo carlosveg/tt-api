@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UsersService } from '../users/services/users.service';
+import { users } from './data/seed-data';
 
 @Injectable()
 export class SeedService {
@@ -10,13 +11,9 @@ export class SeedService {
     return 'SEED executed';
   }
 
-  private async deleteTables() {
-    // await this.
-  }
-
   private async insertInfo() {
-    /* const users = initialData.users;
-
+    // Esta linea elimina a los usuarios y en cascada todos los registros de la bd
+    await this.userService.deleteAllUsers();
     const insertPromises = [];
 
     users.forEach((user) => {
@@ -24,7 +21,5 @@ export class SeedService {
     });
 
     await Promise.all(insertPromises);
-
-    await this.userService.deleteAllUsers(); */
   }
 }
