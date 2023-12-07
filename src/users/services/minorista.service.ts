@@ -58,11 +58,8 @@ export class MinoristaService {
     return dataReturned;
   }
 
-  /* DEPRECATED
-    Descripcion: Este metodo no lo usaremos porque convierte en automatico al usuario en minorista
-    Se van a implementar 2 nuevos metodos
-      -> para guardar la solicitud
-      -> para que el admin acepte la solicitud y entonces el usuario sea convertido a minorista
+  /*
+    Descripcion: Este metodo lo usaremos al aceptar la solicitud de minorista porque convierte en automatico al usuario en minorista
    */
   async createMinorista(id: string, minoristaDto: MinoristaDto) {
     try {
@@ -94,7 +91,9 @@ export class MinoristaService {
         message: 'Usuario convertido a minorista',
       };
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(
+        `Ocurrió un error al convertir al usuario en minorista: ${error}`,
+      );
       throw new ConflictException(error.message);
     }
   }

@@ -86,7 +86,7 @@ export class OpinionsService {
         message: 'Opinion creada con exito',
       };
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(`Ocurrió un error al crear la opinión: ${error}`);
     }
   }
 
@@ -185,7 +185,7 @@ export class OpinionsService {
       await queryRunner.rollbackTransaction();
       await queryRunner.release();
 
-      this.logger.error(error);
+      this.logger.error(`Ocurrió un error al actualizar la opinión ${error}`);
     }
   }
 

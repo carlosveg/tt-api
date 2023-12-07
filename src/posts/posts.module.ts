@@ -11,10 +11,18 @@ import { OpinionsController } from './opinions.controller';
 import { OpinionsService } from './services/opinions.service';
 import { PostsController } from './posts.controller';
 import { PostsService } from './services/posts.service';
+import { FavoritesService } from '../users/services';
+import { EmailService } from '../email/email.service';
 
 @Module({
   controllers: [PostsController, OpinionsController],
-  providers: [PostsService, S3Service, OpinionsService],
+  providers: [
+    PostsService,
+    S3Service,
+    OpinionsService,
+    FavoritesService,
+    EmailService,
+  ],
   imports: [
     TypeOrmModule.forFeature([Post, Image, Opinion]),
     UsersModule,

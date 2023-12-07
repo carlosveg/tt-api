@@ -1,15 +1,10 @@
-import {
-  BadRequestException,
-  HttpStatus,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ScoreDto } from '../dto/score.dto';
+import { UserScores } from '../entities';
 import { User } from '../entities/user.entity';
 import { UsersService } from './users.service';
-import { UserScores } from '../entities';
 
 @Injectable()
 export class ScoresService {
