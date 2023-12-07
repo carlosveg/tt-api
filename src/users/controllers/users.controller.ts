@@ -35,7 +35,7 @@ export class UsersController {
   }
 
   @Get()
-  findAll() {
+  async findAll() {
     return this.usersService.findAll();
   }
 
@@ -99,6 +99,15 @@ export class UsersController {
     @Param('idFavorite', ParseUUIDPipe) idFavorite: string,
   ) {
     return this.favoritesService.isFavorite(idUser, idFavorite);
+  }
+
+  /**
+   * Endpoint de prueba para verificar que el método getEmailsForSendNotification funcione correctamente
+   */
+  @Get('/email/:id')
+  // @Auth()
+  test(@Param('id', ParseUUIDPipe) id: string) {
+    return this.favoritesService.getEmailsForSendNotification(id);
   }
 
   // DEPRECATED

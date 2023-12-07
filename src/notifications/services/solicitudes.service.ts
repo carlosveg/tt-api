@@ -2,6 +2,7 @@ import {
   ConflictException,
   HttpStatus,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
@@ -15,6 +16,13 @@ import { ValidRoles } from '../../auth/interfaces/valid-roles';
 import { UserMinorista } from '../../users/entities/user-minorista.entity';
 import { User } from '../../users/entities';
 import { MinoristaDto } from '../../users/dto';
+import { EmailService } from '../../email/email.service';
+import {
+  minoristaAccept,
+  minoristaReject,
+  reactivateAccept,
+  reactivateReject,
+} from '../messages/messages';
 
 @Injectable()
 export class SolicitudesService {
@@ -27,21 +35,29 @@ export class SolicitudesService {
     private readonly userRepository: Repository<User>,
     private readonly minoristaService: MinoristaService,
     private readonly userService: UsersService,
+    private readonly emailService: EmailService,
   ) {}
 
   /* 
   Para crear una solicitud 
    */
-  async convertToMinorista(id: string, createSolicitudDto: CreateSolicitudDto) {
+  async requestMinorista(id: string, createSolicitudDto: CreateSolicitudDto) {
     const user = await this.userService.findOne(id);
+    this.logger.log(
+      `[SOLICITUD MINORISTA] El usuario: ${user.fullName} ha solicitado convertirse en minorista`,
+    );
 
     if (!user)
       throw new NotFoundException(
         'El id del usuario con que intentas hacer la solicitud no se encontró',
       );
 
-    if (user instanceof UserMinorista)
+    if (user instanceof UserMinorista) {
+      this.logger.log(
+        `[SOLICITUD MINORISTA] El usuario: ${user.fullName} ya es minorista`,
+      );
       throw new ConflictException('El usuario ya es minorista');
+    }
 
     const solicitudDB = await this.solicitudesRepository.findOne({
       where: { user: { id } },
@@ -59,12 +75,16 @@ export class SolicitudesService {
         type: 0,
         user,
       });
-
       await this.solicitudesRepository.save(solicitud);
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(
+        `[SOLICITUD MINORISTA] Ocurrió un error en la solicitud de minorista ${error}`,
+      );
     }
 
+    this.logger.log(
+      '[SOLICITUD MINORISTA] Se ha registrado exitosamente la solicitud de minorista',
+    );
     return {
       status: HttpStatus.CREATED,
       message: 'La solicitud fue creada con exito',
@@ -72,18 +92,26 @@ export class SolicitudesService {
   }
 
   async findAll() {
-    const solicitudes = await this.solicitudesRepository.find({
-      relations: { user: true },
-    });
+    try {
+      this.logger.log('Recuperando solicitudes');
+      const solicitudes = await this.solicitudesRepository.find({
+        relations: { user: true },
+      });
 
-    const result = solicitudes.map((solicitud) => {
-      const { user, ...rest } = solicitud;
-      const { id, fullName, email } = user;
+      const result = solicitudes.map((solicitud) => {
+        const { user, ...rest } = solicitud;
+        const { id, fullName, email } = user;
 
-      return { ...rest, user: { id, fullName, email } };
-    });
+        return { ...rest, user: { id, fullName, email } };
+      });
 
-    return result;
+      return result;
+    } catch (error) {
+      this.logger.error('Ocurrió un error al recuperar las solicitudes', error);
+      throw new InternalServerErrorException(
+        `Ocurrió un error al recuperar las solicitudes ${error}`,
+      );
+    }
   }
 
   async findOne(id: string) {
@@ -111,7 +139,10 @@ export class SolicitudesService {
     try {
       await this.solicitudesRepository.remove(solicitud[0]);
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(`Ocurrió un error al eliminar la solicitud ${error}`);
+      throw new InternalServerErrorException(
+        `Ocurrió un error al eliminar la solicitud ${error}`,
+      );
     }
 
     return {
@@ -120,11 +151,16 @@ export class SolicitudesService {
     };
   }
 
-  async acceptSolicitud(idSolicitud: string, idUser: string) {
+  async convertMinorista(idSolicitud: string, idUser: string) {
     await this.userService.findOne(idUser);
     const solicitudDB = await this.solicitudesRepository.findOneBy({
       id: idSolicitud,
     });
+    const userDB = await this.userRepository.findOneBy({ id: idUser });
+
+    this.logger.log(
+      `[MINORISTA ACEPTADO] Procesando solicitud del usuario ${userDB.fullName}`,
+    );
 
     if (!solicitudDB)
       throw new NotFoundException(
@@ -132,6 +168,7 @@ export class SolicitudesService {
       );
 
     solicitudDB.isRead = true;
+    solicitudDB.isAccepted = true;
 
     const minoristaDto = {
       ocupacion: solicitudDB.ocupacion,
@@ -147,13 +184,70 @@ export class SolicitudesService {
       minoristaDto as MinoristaDto,
     );
 
+    this.emailService.sendEmail(
+      userDB.fullName,
+      [userDB.email],
+      minoristaAccept,
+    );
+
+    this.logger.log(
+      `[MINORISTA ACEPTADO] Solicitud del usuario ${userDB.fullName} aceptada  con exito`,
+    );
+    this.logger.log(
+      `[MINORISTA ACEPTADO] Se ha enviado una notificación al correo ${userDB.email}`,
+    );
+
     return itsOK;
+  }
+
+  async rejectSolicitud(idSolicitud: string, idUser: string) {
+    await this.userService.findOne(idUser);
+    const solicitudDB = await this.solicitudesRepository.findOneBy({
+      id: idSolicitud,
+    });
+    const userDB = await this.userRepository.findOneBy({ id: idUser });
+
+    this.logger.log(
+      `[MINORISTA RECHAZADO] Procesando solicitud del usuario ${userDB.fullName}`,
+    );
+
+    if (!solicitudDB)
+      throw new NotFoundException(
+        `No se encontró la solicitud con id [${idSolicitud}]`,
+      );
+
+    solicitudDB.isRead = true;
+    solicitudDB.isAccepted = false;
+
+    await this.solicitudesRepository.save(solicitudDB);
+
+    this.emailService.sendEmail(
+      userDB.fullName,
+      [userDB.email],
+      minoristaReject,
+    );
+
+    this.logger.log(
+      `[MINORISTA RECHAZADO] Solicitud del usuario ${userDB.fullName} aceptada  con exito`,
+    );
+    this.logger.log(
+      `[MINORISTA RECHAZADO] Se ha enviado una notificación al correo ${userDB.email}`,
+    );
+
+    return {
+      status: HttpStatus.OK,
+      message: 'Solicitud de minorista rechazada con exito',
+    };
   }
 
   async solicitarReactivacionCuenta(id: string) {
     const userDB = await this.userRepository.findOneBy({ id });
 
     if (!userDB) throw new NotFoundException('User not found');
+
+    this.logger.log(
+      `[SOLICITUD REACTIVACIÓN] El usuario: ${userDB.fullName} ha solicitado reactivar su cuenta`,
+    );
 
     const solicitud = this.solicitudesRepository.create({ user: userDB });
 
@@ -163,6 +257,10 @@ export class SolicitudesService {
 
     await this.solicitudesRepository.save(solicitud);
 
+    this.logger.log(
+      `[SOLICITUD REACTIVACIÓN] Se ha registrado con éxito la solicitud para reactivar su cuenta`,
+    );
+
     return {
       status: HttpStatus.CREATED,
       message: 'La solicitud fue creada con exito',
@@ -171,6 +269,10 @@ export class SolicitudesService {
 
   async reactivarCuenta(idSolicitud: string, idUser: string) {
     const userDB = await this.userRepository.findOneBy({ id: idUser });
+
+    this.logger.log(
+      `[REACTIVACIÓN ACEPTADA] Procesando solicitud del usuario ${userDB.fullName}`,
+    );
 
     const solicitudDB = await this.solicitudesRepository.findOneBy({
       id: idSolicitud,
@@ -182,15 +284,68 @@ export class SolicitudesService {
       );
 
     solicitudDB.isRead = true;
+    solicitudDB.isAccepted = true;
     await this.solicitudesRepository.save(solicitudDB);
 
     // Reactivamos la cuenta
     userDB.isActive = true;
     await this.userRepository.save(userDB);
 
+    this.emailService.sendEmail(
+      userDB.fullName,
+      [userDB.email],
+      reactivateAccept,
+    );
+
+    this.logger.log(
+      `[REACTIVACIÓN ACEPTADa] Solicitud del usuario ${userDB.fullName} aceptada  con exito`,
+    );
+    this.logger.log(
+      `[REACTIVACIÓN ACEPTADA] Se ha enviado una notificación al correo ${userDB.email}`,
+    );
+
     return {
-      status: HttpStatus.ACCEPTED,
+      status: HttpStatus.OK,
       message: 'La cuenta fue reactivada con exito',
+    };
+  }
+
+  async rechazoReactivarCuenta(idSolicitud: string, idUser: string) {
+    const userDB = await this.userRepository.findOneBy({ id: idUser });
+
+    this.logger.log(
+      `[REACTIVACIÓN RECHAZADA] Procesando solicitud del usuario ${userDB.fullName}`,
+    );
+
+    const solicitudDB = await this.solicitudesRepository.findOneBy({
+      id: idSolicitud,
+    });
+
+    if (!solicitudDB)
+      throw new NotFoundException(
+        `No se encontró la solicitud con id [${idSolicitud}]`,
+      );
+
+    solicitudDB.isRead = true;
+    solicitudDB.isAccepted = false;
+    await this.solicitudesRepository.save(solicitudDB);
+
+    this.emailService.sendEmail(
+      userDB.fullName,
+      [userDB.email],
+      reactivateReject,
+    );
+
+    this.logger.log(
+      `[REACTIVACIÓN RECHAZADA] Solicitud del usuario ${userDB.fullName} aceptada  con exito`,
+    );
+    this.logger.log(
+      `[REACTIVACIÓN RECHAZADA] Se ha enviado una notificación al correo ${userDB.email}`,
+    );
+
+    return {
+      status: HttpStatus.OK,
+      message: 'Solicitud de reactivacion de cuenta rechazada con exito',
     };
   }
 }

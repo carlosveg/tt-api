@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   HttpStatus,
   Injectable,
   Logger,
@@ -35,11 +34,18 @@ export class FavoritesService {
         return fav;
       });
     } catch (error) {
-      throw new Error(`Error while fetching favorites users: ${error.message}`);
+      this.logger.error(
+        `Error al obtener los favoritos del usuario: ${error.message}`,
+      );
+      throw new Error(
+        `Error al obtener los favoritos del usuario: ${error.message}`,
+      );
     }
   }
 
   async addFavorite(id: string, favoriteUserId: string) {
+    this.logger.log('Agregando favorito');
+
     const user = await this.userRepository.findOne({
       where: { id },
       relations: { favorites: true },
@@ -56,10 +62,10 @@ export class FavoritesService {
         `Favorite user [${favoriteUserId}] not found`,
       );
 
-    if (!user.favorites.some((u) => u.curp === favoriteUserId)) {
-      user.favorites.push(favoriteUser);
-      await this.userRepository.save(user);
-    } else throw new BadRequestException('User is already in your favorites');
+    user.favorites.push(favoriteUser);
+    await this.userRepository.save(user);
+
+    this.logger.log('Favorito agregado con éxito');
 
     return {
       status: HttpStatus.OK,
@@ -68,6 +74,8 @@ export class FavoritesService {
   }
 
   async removeFavorite(id: string, favoriteUserId: string) {
+    this.logger.log('Eliminando favorito');
+
     const user = await this.userRepository.findOne({
       where: { id },
       relations: ['favorites'],
@@ -86,6 +94,7 @@ export class FavoritesService {
 
     await this.userRepository.save(user);
 
+    this.logger.log('Favorito eliminado con éxito');
     return {
       status: HttpStatus.OK,
       message: 'User favorite was deleted successfully',
@@ -93,9 +102,23 @@ export class FavoritesService {
   }
 
   async isFavorite(idUser: string, idFavorite: string) {
+    this.logger.log('Verificando si ya es favorito');
+
     const favorites = await this.getFavoritesByUser(idUser);
     const ids = favorites.map((fav) => fav.id);
 
     return ids.includes(idFavorite);
+  }
+
+  async getEmailsForSendNotification(idUser: string) {
+    this.logger.log(
+      'Obteniendo emails para enviar notificación de nueva publicación',
+    );
+    const { favoritedBy } = await this.userRepository.findOne({
+      where: { id: idUser },
+      relations: { favoritedBy: true },
+    });
+
+    return favoritedBy.map((user) => user.email);
   }
 }

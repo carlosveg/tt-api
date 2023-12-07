@@ -15,6 +15,9 @@ import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { Opinion } from '../entities/opinion.entity';
 import { Post } from '../entities/post.entity';
+import { catalogEnum } from '../../common/enum';
+import { EmailService } from '../../email/email.service';
+import { FavoritesService } from '../../users/services/favorites.service';
 
 @Injectable()
 export class PostsService {
@@ -32,6 +35,8 @@ export class PostsService {
     private readonly userService: UsersService,
     private readonly dataSource: DataSource,
     private readonly s3Service: S3Service,
+    private readonly emailService: EmailService,
+    private readonly favoritesService: FavoritesService,
   ) {}
 
   async create(
@@ -40,12 +45,9 @@ export class PostsService {
     photos: Express.Multer.File[],
   ) {
     try {
-      /*
-        Buscamos que el curp que manden en el Body esté registrado
-        para asociarlo al post
-      */
       const user = await this.userMinoristaRepository.findOne({
         where: { id },
+        relations: { user: true },
       });
 
       if (!user) throw new BadRequestException('User not found');
@@ -69,14 +71,32 @@ export class PostsService {
         images,
       });
 
+      /**
+       * Aquí se va a agregar el envio de correo para los que hayan agregado al usuario como favorito
+       */
+
       await this.postRepository.save(post);
+
+      const emailsFavorites =
+        await this.favoritesService.getEmailsForSendNotification(user.id);
+
+      await this.emailService.sendEmailNotificacion(
+        emailsFavorites,
+        `
+        <p>El usuario ${
+          user.user.fullName
+        } ha realizado una nueva publicación!!!</p>
+        <p>Título de la publicación <strong>${createPostDto.title.toUpperCase()}</strong></p>
+        <p>Ve a darle un vistazo!!!</p>
+        `,
+      );
 
       return {
         status: HttpStatus.CREATED,
         message: 'Post was successfuly created',
       };
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(`Ocurrió un eror al crear el post ${error}`);
       throw new NotFoundException(error.message);
     }
   }
@@ -108,11 +128,18 @@ export class PostsService {
 
     posts.forEach((post) => delete post.updatedAt);
 
-    return posts.map((post) => {
-      const { images, ...rest } = post;
+    const results = posts.map(async (post) => {
+      const { images, user, ...rest } = post;
+      const u = await this.userService.findOne(user.id);
 
-      return { ...rest, images: images.map((image) => image.url) };
+      return {
+        ...rest,
+        user: { ...user, score: u.score },
+        images: images.map((image) => image.url),
+      };
     });
+
+    return await Promise.all(results);
   }
 
   /* debo ver la estructura con que devolvere los datos */
@@ -173,7 +200,7 @@ export class PostsService {
       await queryRunner.rollbackTransaction();
       await queryRunner.release();
 
-      this.logger.error(error);
+      this.logger.error(`Ocurrió un error al actualizar el post ${error}`);
     }
   }
 
@@ -190,7 +217,30 @@ export class PostsService {
         message: 'Post was successfuly deleted',
       };
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(`Ocurrió un error al eliminar el post ${error}`);
     }
+  }
+
+  async getCatalogo(ocupacion: catalogEnum) {
+    this.logger.log(`Obteniendo catalogo ${ocupacion}`);
+    const posts = await this.postRepository.find({
+      relations: { images: true, user: true },
+      where: { user: { ocupacion } },
+    });
+
+    posts.forEach((post) => delete post.updatedAt);
+
+    const results = posts.map(async (post) => {
+      const { images, user, ...rest } = post;
+      const u = await this.userService.findOne(user.id);
+
+      return {
+        ...rest,
+        user: { ...user, score: u.score },
+        images: images.map((image) => image.url),
+      };
+    });
+
+    return await Promise.all(results);
   }
 }

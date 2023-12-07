@@ -12,6 +12,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { S3Module } from './s3/s3.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     AuthModule,
     S3Module,
     NotificationsModule,
+    EmailModule,
   ],
 })
 export class AppModule {}

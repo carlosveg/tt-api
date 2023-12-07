@@ -25,6 +25,8 @@ export class OpinionsService {
     private readonly postRepository: Repository<Post>,
     @InjectRepository(Image)
     private readonly imageRepository: Repository<Image>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @InjectRepository(UserMinorista)
     private readonly userMinoristaRepository: Repository<UserMinorista>,
     @InjectRepository(Opinion)
@@ -35,24 +37,28 @@ export class OpinionsService {
   ) {}
 
   async create(
-    id: string,
+    idPost: string,
+    idUser: string,
     createOpinionDto: CreateOpinionDto,
     photos: Express.Multer.File[],
   ) {
     const postDB = await this.postRepository.findOne({
-      where: { id },
+      where: { id: idPost },
       relations: { user: true },
     });
 
     if (!postDB) throw new NotFoundException('Post not found');
 
-    let user: User | UserMinorista = await this.userMinoristaRepository.findOne(
-      { where: { id: postDB.user.id }, relations: { user: true } },
-    );
+    // let user: User | UserMinorista = await this.userMinoristaRepository.findOne(
+    //   { where: { id: idUser }, relations: { user: true } },
+    // );
 
-    if (!user) throw new NotFoundException('User minorista not found');
+    // Se busca al usuario que hizo la opinion por su id para asociarlo a la opinion
+    const user = await this.userRepository.findOne({ where: { id: idUser } });
 
-    user = user.user;
+    if (!user) throw new NotFoundException('User not found');
+
+    // user = user.user;
 
     try {
       const images = [];
@@ -80,7 +86,7 @@ export class OpinionsService {
         message: 'Opinion creada con exito',
       };
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(`Ocurrió un error al crear la opinión: ${error}`);
     }
   }
 
@@ -121,10 +127,17 @@ export class OpinionsService {
   async findAllByPost(id: string) {
     const opinions = await this.opinionRepository.find({
       where: { post: { id } },
-      relations: { images: true },
     });
 
-    return opinions;
+    return opinions.map((op) => {
+      const { user, images, ...rest } = op;
+
+      return {
+        ...rest,
+        user: { fullName: user.fullName },
+        images: images.map((img) => img.url),
+      };
+    });
   }
 
   async update(
@@ -172,7 +185,7 @@ export class OpinionsService {
       await queryRunner.rollbackTransaction();
       await queryRunner.release();
 
-      this.logger.error(error);
+      this.logger.error(`Ocurrió un error al actualizar la opinión ${error}`);
     }
   }
 
