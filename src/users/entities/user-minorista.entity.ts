@@ -30,7 +30,7 @@ export class UserMinorista {
   @Column('text', { nullable: false })
   longitud: string;
 
-  @OneToOne(() => User)
+  @OneToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'idUser' })
   user: Relation<User>;
 
