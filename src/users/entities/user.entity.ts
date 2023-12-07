@@ -30,8 +30,11 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // @PrimaryColumn('text', { nullable: false, unique: true })
-  @Column('text', { nullable: false, unique: true, select: false })
+  @Column('text', {
+    nullable: false,
+    unique: true,
+    select: false,
+  })
   curp: string;
 
   @Column('text', { nullable: false })

@@ -32,20 +32,19 @@ export class AuthService {
       /*
         TODO: hashear el curp del usuario y hacer que funcione la verificacion si ya existe
       */
-      // const hashCurp = bcrypt.hashSync(curp, 10);
-      const exists = await this.userRepository.findOne({
-        where: { curp },
-      });
+      const users = await this.userRepository.find({ select: { curp: true } });
 
-      if (exists) {
-        throw new ConflictException(
-          `User with curp [${createUserDto.curp}] already exists`,
-        );
+      for (const user of users) {
+        if (bcrypt.compareSync(curp, user.curp)) {
+          throw new ConflictException(
+            `User with curp [${createUserDto.curp}] already exists`,
+          );
+        }
       }
 
       const user = this.userRepository.create({
         ...rest,
-        curp,
+        curp: bcrypt.hashSync(curp, 10),
         password: bcrypt.hashSync(password, 10),
       });
 
