@@ -11,9 +11,13 @@ export class SeedService {
     return 'SEED executed';
   }
 
-  private async insertInfo() {
+  async destroyDB() {
     // Esta linea elimina a los usuarios y en cascada todos los registros de la bd
     await this.userService.deleteAllUsers();
+  }
+
+  private async insertInfo() {
+    await this.destroyDB();
     const insertPromises = [];
 
     users.forEach((user) => {
