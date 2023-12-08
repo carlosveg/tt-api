@@ -12,4 +12,9 @@ export class SeedController {
   executeSeed() {
     return this.seedService.runSeed();
   }
+
+  @Get('destroyDB')
+  destroyDB() {
+    return this.seedService.destroyDB();
+  }
 }
