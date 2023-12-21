@@ -3,11 +3,17 @@ import { Transport, createTransport } from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
 import { template } from './templates/template';
 import { templateContratacion } from './templates/contratacion';
+import {
+  SESClient,
+  SendEmailCommand,
+  SendTemplatedEmailCommand,
+} from '@aws-sdk/client-ses';
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
   private readonly transporter;
+  private readonly sesClient: SESClient;
 
   constructor(private readonly configService: ConfigService) {
     this.transporter = createTransport({
@@ -20,10 +26,49 @@ export class EmailService {
         pass: this.configService.get<string>('KEY_EMAIL'),
       },
     });
+
+    this.sesClient = new SESClient({
+      region: this.configService.get<string>('SES_REGION'),
+      credentials: {
+        accessKeyId: this.configService.get<string>('SES_AWS_PUBLIC_KEY'),
+        secretAccessKey: this.configService.get<string>('SES_AWS_SECRET_KEY'),
+      },
+    });
+  }
+
+  async sendEmailSES(to: string[], template: string, subject: string) {
+    const emailCommand = new SendEmailCommand({
+      Destination: {
+        /* required */
+        CcAddresses: [
+          /* more items */
+        ],
+        ToAddresses: to,
+      },
+      Message: {
+        /* required */
+        Body: {
+          /* required */
+          Html: {
+            Charset: 'UTF-8',
+            Data: template,
+          },
+        },
+        Subject: {
+          Charset: 'UTF-8',
+          Data: subject,
+        },
+      },
+      Source: this.configService.get<string>('EMAIL_TT'),
+    });
+
+    await this.sesClient.send(emailCommand);
   }
 
   async sendEmail(userName: string, to: string[], content: string) {
-    this.logger.log(`[SOLICITUD] Iniciando envío de email hacía ${to}`);
+    this.logger.log(
+      `[SOLICITUD] Iniciando envío de email con NODEMAILER hacía ${to}`,
+    );
 
     const options = {
       from: `TT admin <${this.configService.get<string>('EMAIL_TT')},>`,
@@ -40,8 +85,11 @@ export class EmailService {
     } catch (error) {
       console.log(error);
       this.logger.error(
-        `[SOLICITUD] Ocurrio un error al enviar el email hacía ${to}`,
+        `[SOLICITUD] Ocurrio un error al enviar el email con NODEMAILER hacía ${to}`,
       );
+
+      this.logger.log(`[SOLICITUD] Intentando envío de email con AWS SES`);
+      this.sendEmailSES(to, template(userName, content), 'Estado de solicitud');
     }
   }
 
@@ -66,6 +114,32 @@ export class EmailService {
       this.logger.error(
         `[CONTRATACION] Ocurrio un error al enviar el email hacía ${to}`,
       );
+
+      this.logger.log(`[CONTRATACION] Intentando envío de email con AWS SES`);
+      const emailCommand = new SendEmailCommand({
+        Destination: {
+          /* required */
+          CcAddresses: [from],
+          ToAddresses: to,
+        },
+        Message: {
+          /* required */
+          Body: {
+            /* required */
+            Html: {
+              Charset: 'UTF-8',
+              Data: templateContratacion(content + `<p>Contacto: ${from}.</p>`),
+            },
+          },
+          Subject: {
+            Charset: 'UTF-8',
+            Data: 'Solicitud de contratación',
+          },
+        },
+        Source: this.configService.get<string>('EMAIL_TT'),
+      });
+
+      await this.sesClient.send(emailCommand);
     }
   }
 
@@ -88,6 +162,13 @@ export class EmailService {
       console.log(error);
       this.logger.error(
         `[NOTIFICACION] Ocurrio un error al enviar el email hacía ${to}`,
+      );
+
+      this.logger.log(`[NOTIFICACION] Intentando envío de email con AWS SES`);
+      this.sendEmailSES(
+        to,
+        templateContratacion(content),
+        'Notificación de nueva publicación',
       );
     }
   }
