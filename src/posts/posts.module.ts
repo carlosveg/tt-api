@@ -29,5 +29,6 @@ import { EmailService } from '../email/email.service';
     ConfigModule,
     AuthModule,
   ],
+  exports: [TypeOrmModule],
 })
 export class PostsModule {}
