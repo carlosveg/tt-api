@@ -1,12 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { UsersService } from '../users/services/users.service';
-import { users } from './data/users';
-import { Repository } from 'typeorm';
-import { User, UserMinorista } from '../users/entities';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Contrataciones } from '../users/entities/contratacion.entity';
+import { Repository } from 'typeorm';
+import { CreatePostDto } from '../posts/dto/create-post.dto';
+import { Image } from '../posts/entities/image.entity';
+import { Post } from '../posts/entities/post.entity';
 import { MinoristaDto } from '../users/dto';
+import { User, UserMinorista } from '../users/entities';
+import { Contrataciones } from '../users/entities/contratacion.entity';
+import { UsersService } from '../users/services/users.service';
 import { minoristaSeed } from './data/minoristas';
+import { users } from './data/users';
 
 @Injectable()
 export class SeedService {
@@ -18,6 +25,10 @@ export class SeedService {
     private readonly minoristaRepository: Repository<UserMinorista>,
     @InjectRepository(Contrataciones)
     private readonly contratacionesRepository: Repository<Contrataciones>,
+    @InjectRepository(Post)
+    private readonly postRepository: Repository<Post>,
+    @InjectRepository(Image)
+    private readonly imageRepository: Repository<Image>,
   ) {}
 
   async runSeed() {
@@ -103,5 +114,42 @@ export class SeedService {
 
     const c = await this.contratacionesRepository.save(contratacion);
     console.log(c);
+  }
+
+  private async createPost(
+    id: string,
+    createPostDto: CreatePostDto,
+    photos: string[],
+  ) {
+    try {
+      const user = await this.minoristaRepository.findOne({
+        where: { id },
+        relations: { user: true },
+      });
+
+      if (!user) throw new BadRequestException('User not found');
+
+      const images = [];
+
+      if (photos.length > 0) {
+        photos.forEach((url) => {
+          const image = this.imageRepository.create({ url });
+          images.push(image);
+        });
+
+        await this.imageRepository.save(images);
+      }
+
+      const post = this.postRepository.create({
+        ...createPostDto,
+        user,
+        images,
+      });
+
+      await this.postRepository.save(post);
+    } catch (error) {
+      console.error(`Ocurrió un eror al crear el post ${error}`);
+      throw new NotFoundException(error.message);
+    }
   }
 }
