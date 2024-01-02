@@ -80,16 +80,17 @@ export class PostsService {
       const emailsFavorites =
         await this.favoritesService.getEmailsForSendNotification(user.id);
 
-      await this.emailService.sendEmailNotificacion(
-        emailsFavorites,
-        `
+      if (emailsFavorites.length > 0)
+        await this.emailService.sendEmailNotificacion(
+          emailsFavorites,
+          `
         <p>El usuario ${
           user.user.fullName
         } ha realizado una nueva publicación!!!</p>
         <p>Título de la publicación <strong>${createPostDto.title.toUpperCase()}</strong></p>
         <p>Ve a darle un vistazo!!!</p>
         `,
-      );
+        );
 
       return {
         status: HttpStatus.CREATED,
