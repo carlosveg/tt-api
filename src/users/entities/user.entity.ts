@@ -87,6 +87,9 @@ export class User {
   @Column('numeric', { default: 0 })
   score: number;
 
+  @Column('numeric', { default: 0 })
+  countScores: number;
+
   @OneToMany(() => UserScores, (score) => score.usuarioCalificador, {
     cascade: true,
   })
