@@ -14,6 +14,7 @@ import { Contrataciones } from '../users/entities/contratacion.entity';
 import { UsersService } from '../users/services/users.service';
 import { minoristaSeed } from './data/minoristas';
 import { users } from './data/users';
+import { posts } from './data/posts';
 
 @Injectable()
 export class SeedService {
@@ -43,6 +44,10 @@ export class SeedService {
     const minoristas = await this.insertMinorista(minoristasFilter);
 
     await this.insertContrataciones(minoristas[1].id, minoristasFilter[7].id);
+
+    posts.forEach(async (post: Post) => {
+      // await this.createPost("", post)
+    });
 
     return 'SEED executed';
   }

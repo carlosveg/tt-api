@@ -119,6 +119,10 @@ export class FavoritesService {
       relations: { favoritedBy: true },
     });
 
+    this.logger.log(
+      `Se obtuvieron ${favoritedBy.length} usuarios que lo tienen como favorito`,
+    );
+
     return favoritedBy.map((user) => user.email);
   }
 }

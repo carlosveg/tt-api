@@ -99,6 +99,8 @@ export class UsersService {
     delete user.isActive;
     delete user.password;
 
+    console.log(user);
+
     return user;
   }
 

@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Image } from '../entities/image.entity';
 import { S3Service } from '../../s3/s3.service';
-import { User, UserMinorista } from '../../users/entities';
+import { User, UserMinorista, UserScores } from '../../users/entities';
 import { UsersService } from '../../users/services/users.service';
 import { CreateOpinionDto } from '../dto/create-opinion.dto';
 import { UpdateOpinionDto } from '../dto/update-opinion.dto';
@@ -31,6 +31,8 @@ export class OpinionsService {
     private readonly userMinoristaRepository: Repository<UserMinorista>,
     @InjectRepository(Opinion)
     private readonly opinionRepository: Repository<Opinion>,
+    @InjectRepository(UserScores)
+    private readonly userScoreRepository: Repository<UserScores>,
     private readonly userService: UsersService,
     private readonly dataSource: DataSource,
     private readonly s3Service: S3Service,
@@ -128,16 +130,29 @@ export class OpinionsService {
     const opinions = await this.opinionRepository.find({
       where: { post: { id } },
     });
+    const userPost = await this.postRepository.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+    const u = await this.userRepository.findOne({ where: { id: userPost.id } });
 
-    return opinions.map((op) => {
+    // console.log(opinions);
+
+    const results = opinions.map(async (op) => {
       const { user, images, ...rest } = op;
+
+      const score = await this.userScoreRepository.findOne({
+        where: { id },
+      });
 
       return {
         ...rest,
-        user: { fullName: user.fullName },
+        user: { fullName: user.fullName, score: score.score },
         images: images.map((img) => img.url),
       };
     });
+
+    return await Promise.all(results);
   }
 
   async update(
