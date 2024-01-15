@@ -57,6 +57,7 @@ export class ScoresService {
     });
 
     usuarioCalificado.score = this.recalcular(scores);
+    usuarioCalificado.countScores = scores.length;
 
     this.logger.log(
       `Se ha actualizado el score del usuario ${usuarioCalificado.fullName}`,
