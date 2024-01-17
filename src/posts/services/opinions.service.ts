@@ -134,20 +134,16 @@ export class OpinionsService {
       where: { id },
       relations: { user: true },
     });
-    const u = await this.userRepository.findOne({ where: { id: userPost.id } });
+    // const u = await this.userRepository.findOne({ where: { id: userPost.id } });
 
     // console.log(opinions);
 
     const results = opinions.map(async (op) => {
       const { user, images, ...rest } = op;
 
-      const score = await this.userScoreRepository.findOne({
-        where: { id },
-      });
-
       return {
         ...rest,
-        user: { fullName: user.fullName, score: score.score },
+        user: { fullName: user.fullName },
         images: images.map((img) => img.url),
       };
     });
